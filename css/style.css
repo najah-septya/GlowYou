@@ -98,6 +98,12 @@ body {
   border: 1px solid rgba(247, 214, 200, 0.5);
 }
 
+/* Camera Mirror Mode */
+.mirror-mode {
+  transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+}
+
 /* AI Camera Scanner Animations */
 @keyframes scanLaser {
   0% { top: 10%; opacity: 0.3; }

@@ -9,7 +9,7 @@ const defaultState = {
   user: {
     name: "Alifa Najwa",
     email: "alifa@glowyou.id",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+    avatar: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FCE8E6'/><circle cx='50' cy='42' r='24' fill='%23F8C7BF'/><path d='M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z' fill='%237A404F'/><circle cx='42' cy='46' r='2.5' fill='%2343222A'/><circle cx='58' cy='46' r='2.5' fill='%2343222A'/><path d='M46 54c2 2 6 2 8 0' stroke='%2343222A' stroke-width='2' stroke-linecap='round' fill='none'/></svg>",
     skinType: "oily", // Default atau null jika belum tes
     undertone: "Warm - Sand",
     undertoneHex: "#D5A073",
@@ -21,7 +21,7 @@ const defaultState = {
       redness: "Ringan",
       acneSpots: 3
     },
-    lastScanPhoto: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80",
+    lastScanPhoto: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' fill='%23241C1E'/><circle cx='200' cy='180' r='100' fill='%23F8C7BF'/><path d='M200 70c-75 0-108 50-108 100 0 42 21 75 42 92 8 17 17 42 13 58h106c-4-16 5-41 13-58 21-17 42-50 42-92 0-50-33-100-108-100z' fill='%237A404F'/><circle cx='165' cy='195' r='10' fill='%2343222A'/><circle cx='235' cy='195' r='10' fill='%2343222A'/><path d='M185 235c10 8 20 8 30 0' stroke='%2343222A' stroke-width='6' stroke-linecap='round' fill='none'/></svg>",
     lastAnalysisDate: "2026-11-22"
   },
   skinAnalysisHistory: [

@@ -11,6 +11,9 @@ function formatRupiah(number) {
   }).format(number);
 }
 
+// GlowYou Default Avatar SVG
+const GLOWYOU_FALLBACK_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FCE8E6'/><circle cx='50' cy='42' r='24' fill='%23F8C7BF'/><path d='M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z' fill='%237A404F'/><circle cx='42' cy='46' r='2.5' fill='%2343222A'/><circle cx='58' cy='46' r='2.5' fill='%2343222A'/><path d='M46 54c2 2 6 2 8 0' stroke='%2343222A' stroke-width='2' stroke-linecap='round' fill='none'/></svg>";
+
 // Toast Notification Manager
 function showToast(message, type = "success") {
   const toastContainer = document.getElementById("toast-container");
@@ -450,19 +453,16 @@ class GlowApp {
       {
         title: "Kenali Tipe Kulitmu",
         desc: "Dapatkan analisis akurat kondisi kulit dan rekomendasi perawatan spesifik yang paling tepat untukmu.",
-        image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80",
         badge: "Analisis Mandiri & Pintar"
       },
       {
         title: "Produk Terkurasi 100% Aman",
         desc: "Temukan skincare dengan kandungan bahan aktif yang teruji dan bebas dari bahan yang merusak skin barrier.",
-        image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80",
         badge: "Rekomendasi Spesifik"
       },
       {
         title: "Belanja Langsung & Praktis",
         desc: "Checkout mudah langsung di dalam aplikasi dengan pilihan metode pembayaran virtual account, e-wallet & COD.",
-        image: "https://images.unsplash.com/photo-1608248597359-009cf012c474?w=500&auto=format&fit=crop&q=80",
         badge: "In-App Checkout Cepat"
       }
     ];
@@ -481,9 +481,26 @@ class GlowApp {
         </div>
 
         <div class="my-auto py-6 flex flex-col items-center">
-          <div class="w-64 h-64 rounded-3xl overflow-hidden shadow-2xl border-4 border-white mb-8 relative">
-            <img src="${current.image}" class="w-full h-full object-cover" alt="Onboarding">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+          <!-- GlowYou Branding Card (Logo Resmi GlowYou) -->
+          <div class="w-60 h-60 rounded-3xl bg-gradient-to-tr from-[#FAF0ED] via-white to-[#FDE8E3] shadow-xl border-4 border-white mb-8 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            <div class="w-28 h-28 rounded-full bg-white shadow-md border border-[#F4C6BE] flex items-center justify-center p-3 relative animate-pulse-soft">
+              <div class="w-20 h-20 rounded-full bg-[#FAF0ED] flex items-center justify-center overflow-hidden">
+                <svg viewBox="0 0 100 100" class="w-16 h-16 text-[#C06C84]" fill="currentColor">
+                  <circle cx="50" cy="45" r="28" fill="#F8C7BF"/>
+                  <path d="M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z" fill="#7A404F"/>
+                  <circle cx="42" cy="48" r="3" fill="#43222A"/>
+                  <circle cx="58" cy="48" r="3" fill="#43222A"/>
+                  <path d="M46 58c2 2 6 2 8 0" stroke="#43222A" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+              </div>
+              <div class="absolute -top-1 -right-1 bg-[#E58C8A] text-white p-1.5 rounded-full shadow-xs">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              </div>
+            </div>
+            <div class="mt-3.5 flex flex-col items-center text-center">
+              <span class="text-base font-extrabold text-[#433135] tracking-tight">GlowYou</span>
+              <span class="text-[10px] text-[#A24B5C] font-semibold tracking-wide">Kenali Kulitmu, Raih Versi Terbaikmu</span>
+            </div>
           </div>
           <h2 class="text-2xl font-bold text-[#3B2C30] tracking-tight">${current.title}</h2>
           <p class="text-xs text-[#7B6367] mt-3 max-w-xs leading-relaxed font-normal">
@@ -603,8 +620,22 @@ class GlowApp {
                 </button>
               </div>
             </div>
+            <!-- GlowYou Official Brand Emblem -->
             <div class="absolute -right-6 -bottom-6 w-36 h-36 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center p-3">
-              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&auto=format&fit=crop&q=80" class="w-28 h-28 rounded-full object-cover border-2 border-white/50" alt="Skin Care">
+              <div class="w-24 h-24 rounded-full bg-white/95 shadow-md flex items-center justify-center border-2 border-white/80 relative">
+                <div class="w-18 h-18 rounded-full bg-[#FAF0ED] flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 100 100" class="w-14 h-14 text-[#C06C84]" fill="currentColor">
+                    <circle cx="50" cy="45" r="28" fill="#F8C7BF"/>
+                    <path d="M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z" fill="#7A404F"/>
+                    <circle cx="42" cy="48" r="3" fill="#43222A"/>
+                    <circle cx="58" cy="48" r="3" fill="#43222A"/>
+                    <path d="M46 58c2 2 6 2 8 0" stroke="#43222A" stroke-width="2" stroke-linecap="round" fill="none"/>
+                  </svg>
+                </div>
+                <div class="absolute -top-1 -right-1 bg-[#E58C8A] text-white p-1 rounded-full shadow-xs">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -741,6 +772,13 @@ class GlowApp {
     try {
       this.stopCameraStream();
 
+      // Set mirror mode class on video element for front camera
+      if (this.cameraFacingMode === "user") {
+        video.classList.add("mirror-mode");
+      } else {
+        video.classList.remove("mirror-mode");
+      }
+
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         const constraints = {
           video: {
@@ -775,8 +813,16 @@ class GlowApp {
 
   flipCamera() {
     this.cameraFacingMode = this.cameraFacingMode === "user" ? "environment" : "user";
+    const video = document.getElementById("camera-video");
+    if (video) {
+      if (this.cameraFacingMode === "user") {
+        video.classList.add("mirror-mode");
+      } else {
+        video.classList.remove("mirror-mode");
+      }
+    }
     this.initCameraStream();
-    showToast(`Beralih ke kamera ${this.cameraFacingMode === 'user' ? 'depan' : 'belakang'}`);
+    showToast(`Beralih ke kamera ${this.cameraFacingMode === 'user' ? 'depan (mirror)' : 'belakang'}`);
   }
 
   captureCameraPhoto() {
@@ -788,10 +834,15 @@ class GlowApp {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext("2d");
+      // Cerminkan foto (mirror flip horizontal) jika menggunakan kamera depan
+      if (this.cameraFacingMode === "user") {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       photoData = canvas.toDataURL("image/jpeg", 0.85);
     } else {
-      photoData = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=700&auto=format&fit=crop&q=80";
+      photoData = GLOWYOU_FALLBACK_AVATAR;
     }
 
     this.stopCameraStream();
@@ -838,12 +889,29 @@ class GlowApp {
 
         <!-- Live Camera Viewfinder -->
         <div class="relative flex-1 flex items-center justify-center overflow-hidden">
-          <video id="camera-video" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
+          <video id="camera-video" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover mirror-mode"></video>
           <canvas id="camera-canvas" class="hidden"></canvas>
 
-          <!-- Fallback Image if camera not permitted / simulator -->
-          <div id="camera-fallback" class="absolute inset-0 w-full h-full bg-gray-900 hidden flex items-center justify-center">
-            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80" class="w-full h-full object-cover opacity-80" alt="Simulator Face">
+          <!-- Fallback Visual if camera not permitted / simulator -->
+          <div id="camera-fallback" class="absolute inset-0 w-full h-full bg-gradient-to-b from-[#251A1D] via-[#1D1416] to-[#120B0D] hidden flex flex-col items-center justify-center p-6 text-center select-none">
+            <div class="w-32 h-32 rounded-full bg-white/10 backdrop-blur-md border border-[#F4C6BE]/30 flex items-center justify-center p-4 mb-4 relative shadow-2xl animate-pulse-soft">
+              <div class="w-24 h-24 rounded-full bg-white shadow-inner flex items-center justify-center overflow-hidden">
+                <svg viewBox="0 0 100 100" class="w-18 h-18 text-[#C06C84]" fill="currentColor">
+                  <circle cx="50" cy="45" r="28" fill="#F8C7BF"/>
+                  <path d="M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z" fill="#7A404F"/>
+                  <circle cx="42" cy="48" r="3" fill="#43222A"/>
+                  <circle cx="58" cy="48" r="3" fill="#43222A"/>
+                  <path d="M46 58c2 2 6 2 8 0" stroke="#43222A" stroke-width="2" stroke-linecap="round" fill="none"/>
+                </svg>
+              </div>
+              <div class="absolute -top-1 -right-1 bg-[#E58C8A] text-white p-2 rounded-full shadow-md">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <h4 class="text-sm font-bold text-white tracking-wide">Kamera Simulator GlowYou</h4>
+            <p class="text-[11px] text-white/60 mt-1 max-w-[240px]">
+              Kamera siap menganalisis kulit wajahmu. Klik tombol kamera di bawah untuk memproses scan.
+            </p>
           </div>
 
           <!-- Dark Vignette Overlay -->
@@ -926,7 +994,7 @@ class GlowApp {
             <div class="absolute inset-0 rounded-full border-2 border-[#E58C8A]/40 animate-ping"></div>
             <div class="absolute inset-2 rounded-full border-2 border-dashed border-[#E58C8A] animate-radar-sweep"></div>
             <div class="w-28 h-28 rounded-full overflow-hidden border-3 border-white shadow-xl relative">
-              <img src="${this.capturedPhoto || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&auto=format&fit=crop&q=80'}" class="w-full h-full object-cover" alt="Captured Face">
+              <img src="${this.capturedPhoto || GLOWYOU_FALLBACK_AVATAR}" class="w-full h-full object-cover" alt="Captured Face">
               <div class="absolute inset-0 bg-[#A24B5C]/25"></div>
               <div class="absolute inset-x-0 h-1 bg-[#E58C8A] shadow-[0_0_8px_#E58C8A] animate-scan-laser"></div>
             </div>
@@ -1002,7 +1070,7 @@ class GlowApp {
     const user = store.state.user;
     const skinInfo = GLOW_DATA.skinTypes[user.skinType || "oily"];
     const metrics = user.scanMetrics || { sebum: 82, hydration: 64, pores: "Terbuka", redness: "Ringan", acneSpots: 3 };
-    const photo = user.lastScanPhoto || this.capturedPhoto || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&auto=format&fit=crop&q=80";
+    const photo = user.lastScanPhoto || this.capturedPhoto || GLOWYOU_FALLBACK_AVATAR;
 
     const foundationProd = GLOW_DATA.products.find(p => p.id === "p9") || GLOW_DATA.products[0];
     const routineProds = [
