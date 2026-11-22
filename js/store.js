@@ -235,7 +235,7 @@ class GlowStore {
   createOrder({ recipient, phone, address, city, postalCode, courier, shippingFee, paymentMethod }) {
     const randomNum = Math.floor(100000 + Math.random() * 900000);
     const orderId = `GLOW-${randomNum}`;
-    
+
     // Siapkan item list
     const items = this.state.cart.map(item => {
       const prod = GLOW_DATA.products.find(p => p.id === item.productId);
