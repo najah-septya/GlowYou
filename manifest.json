@@ -1,0 +1,23 @@
+{
+  "name": "GlowYou - Skincare & Analisis Kulit",
+  "short_name": "GlowYou",
+  "description": "Kenali Kulitmu, Raih Versi Terbaikmu. Aplikasi analisis tipe kulit, tips kecantikan, dan belanja produk skincare terpercaya.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAF5F0",
+  "theme_color": "#E58C8A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=192&auto=format&fit=crop&q=80",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=512&auto=format&fit=crop&q=80",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
+

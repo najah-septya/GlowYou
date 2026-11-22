@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>GlowYou - Kenali Kulitmu, Raih Versi Terbaikmu</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#FAF5F0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GlowYou">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23E58C8A'/><circle cx='50' cy='50' r='25' fill='%23FFFFFF'/></svg>">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            glow: {
+              blush: '#E58C8A',
+              rose: '#C06C84',
+              deep: '#A24B5C',
+              dark: '#3B2C30',
+              peach: '#FAF5F0',
+              soft: '#FDE8E3'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="antialiased min-h-screen flex flex-col justify-center items-center p-0 sm:p-4 bg-[#F2E8E2]">
+
+  <!-- Mobile Device Frame Container -->
+  <div class="mobile-viewport w-full" id="viewport-container">
+    
+    <!-- Top Status Bar Simulation for Mobile Viewport -->
+    <div class="hidden sm:flex items-center justify-between px-7 pt-3 pb-1 text-xs text-gray-500 bg-[#FAF5F0] select-none">
+      <span class="font-bold text-[11px] tracking-tight text-gray-700">9:41</span>
+      <div class="w-20 h-4 bg-black/80 rounded-full mx-auto"></div>
+      <div class="flex items-center gap-1.5 text-gray-700">
+        <i data-lucide="signal" class="w-3 h-3"></i>
+        <i data-lucide="wifi" class="w-3 h-3"></i>
+        <i data-lucide="battery-medium" class="w-3.5 h-3.5"></i>
+      </div>
+    </div>
+
+    <!-- Main Dynamic Application Screen Content -->
+    <main id="app-content" class="flex-1 overflow-y-auto no-scrollbar relative"></main>
+
+    <!-- Bottom Navigation Bar (Dengan Tombol AI Scan Kamera di Tengah seperti Gambar 2) -->
+    <nav id="bottom-navigation" class="glass-nav fixed sm:absolute bottom-0 left-0 right-0 z-30 max-w-[440px] mx-auto px-3 py-2 border-t border-[#F0DFD9] flex items-center justify-around pb-safe">
+      <!-- 1. Home -->
+      <button onclick="store.setTab('home')" data-tab="home" class="nav-tab-btn flex flex-col items-center gap-1 py-1 px-2.5 text-gray-400 hover:text-[#A24B5C] transition-all">
+        <div class="nav-icon-wrapper p-1 rounded-xl transition-all">
+          <i data-lucide="home" class="w-5 h-5"></i>
+        </div>
+        <span class="text-[10px] tracking-tight">Home</span>
+      </button>
+
+      <!-- 2. Produk -->
+      <button onclick="store.setTab('product')" data-tab="product" class="nav-tab-btn flex flex-col items-center gap-1 py-1 px-2.5 text-gray-400 hover:text-[#A24B5C] transition-all">
+        <div class="nav-icon-wrapper p-1 rounded-xl transition-all">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+        </div>
+        <span class="text-[10px] tracking-tight">Produk</span>
+      </button>
+
+      <!-- 3. AI Camera Scan (Center Highlighted Button) -->
+      <button onclick="app.openCameraScanner()" class="flex flex-col items-center -mt-5 group" title="Scan Wajah via Kamera">
+        <div class="w-13 h-13 rounded-full bg-gradient-to-tr from-[#D6727F] via-[#B35264] to-[#8C3A4B] text-white flex items-center justify-center shadow-lg shadow-[#D6727F]/40 border-3 border-white group-active:scale-90 transition-all">
+          <i data-lucide="scan-face" class="w-6 h-6"></i>
+        </div>
+        <span class="text-[9px] font-bold text-[#A24B5C] mt-0.5">AI Scan</span>
+      </button>
+
+      <!-- 4. Tips -->
+      <button onclick="store.setTab('tips')" data-tab="tips" class="nav-tab-btn flex flex-col items-center gap-1 py-1 px-2.5 text-gray-400 hover:text-[#A24B5C] transition-all">
+        <div class="nav-icon-wrapper p-1 rounded-xl transition-all">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <span class="text-[10px] tracking-tight">Tips</span>
+      </button>
+
+      <!-- 5. Profil -->
+      <button onclick="store.setTab('profile')" data-tab="profile" class="nav-tab-btn flex flex-col items-center gap-1 py-1 px-2.5 text-gray-400 hover:text-[#A24B5C] transition-all">
+        <div class="nav-icon-wrapper p-1 rounded-xl transition-all">
+          <i data-lucide="user" class="w-5 h-5"></i>
+        </div>
+        <span class="text-[10px] tracking-tight">Profil</span>
+      </button>
+    </nav>
+
+    <!-- Floating Toast Notifications Container -->
+    <div id="toast-container" class="fixed sm:absolute top-5 left-4 right-4 z-50 pointer-events-none flex flex-col items-center gap-2"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="./js/data.js"></script>
+  <script src="./js/store.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
+
