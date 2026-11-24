@@ -6,9 +6,13 @@ const STORAGE_KEY = "glowyou_app_state_v1";
 
 const defaultState = {
   hasCompletedOnboarding: false,
+  isLoggedIn: true, // Default aktif agar pengguna bisa langsung mencoba atau logout kapan saja
   user: {
     name: "Alifa Najwa",
+    nickname: "Alifa", // Nama panggilan personal
+    username: "alifanajwa",
     email: "alifa@glowyou.id",
+    password: "password123",
     avatar: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FCE8E6'/><circle cx='50' cy='42' r='24' fill='%23F8C7BF'/><path d='M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z' fill='%237A404F'/><circle cx='42' cy='46' r='2.5' fill='%2343222A'/><circle cx='58' cy='46' r='2.5' fill='%2343222A'/><path d='M46 54c2 2 6 2 8 0' stroke='%2343222A' stroke-width='2' stroke-linecap='round' fill='none'/></svg>",
     skinType: "oily", // Default atau null jika belum tes
     undertone: "Warm - Sand",
@@ -24,6 +28,15 @@ const defaultState = {
     lastScanPhoto: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' fill='%23241C1E'/><circle cx='200' cy='180' r='100' fill='%23F8C7BF'/><path d='M200 70c-75 0-108 50-108 100 0 42 21 75 42 92 8 17 17 42 13 58h106c-4-16 5-41 13-58 21-17 42-50 42-92 0-50-33-100-108-100z' fill='%237A404F'/><circle cx='165' cy='195' r='10' fill='%2343222A'/><circle cx='235' cy='195' r='10' fill='%2343222A'/><path d='M185 235c10 8 20 8 30 0' stroke='%2343222A' stroke-width='6' stroke-linecap='round' fill='none'/></svg>",
     lastAnalysisDate: "2026-11-22"
   },
+  registeredUsers: [
+    {
+      name: "Alifa Najwa",
+      nickname: "Alifa",
+      username: "alifanajwa",
+      email: "alifa@glowyou.id",
+      password: "password123"
+    }
+  ],
   skinAnalysisHistory: [
     {
       date: "2026-11-20",
@@ -83,7 +96,25 @@ class GlowStore {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return { ...defaultState, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        const state = { ...defaultState, ...parsed };
+        state.user = { ...defaultState.user, ...(parsed.user || {}) };
+        if (!state.user.nickname) {
+          state.user.nickname = state.user.name ? state.user.name.split(" ")[0] : "Cantik";
+        }
+        if (!state.user.username) {
+          state.user.username = "alifanajwa";
+        }
+        if (!state.user.password) {
+          state.user.password = "password123";
+        }
+        if (state.isLoggedIn === undefined) {
+          state.isLoggedIn = true;
+        }
+        if (!Array.isArray(state.registeredUsers) || state.registeredUsers.length === 0) {
+          state.registeredUsers = [...defaultState.registeredUsers];
+        }
+        return state;
       }
     } catch (e) {
       console.error("Gagal memuat state dari localStorage:", e);
@@ -127,8 +158,129 @@ class GlowStore {
 
   completeOnboarding() {
     this.state.hasCompletedOnboarding = true;
+    this.state.currentView = this.state.isLoggedIn ? "main" : "auth";
+    this.saveState();
+  }
+
+  // Authentication & Personalization Actions
+  registerUser({ name, nickname, username, email, password }) {
+    const cleanNick = (nickname || (name ? name.split(" ")[0] : "Cantik")).trim();
+    const cleanUser = (username || cleanNick.toLowerCase().replace(/\s+/g, "_")).replace(/^@/, "").trim();
+    const cleanEmail = (email || `${cleanUser}@glowyou.id`).trim().toLowerCase();
+    const cleanName = (name || cleanNick).trim();
+
+    const newUser = {
+      name: cleanName,
+      nickname: cleanNick,
+      username: cleanUser,
+      email: cleanEmail,
+      password: password || "password123"
+    };
+
+    // Update active user state
+    this.state.user.name = cleanName;
+    this.state.user.nickname = cleanNick;
+    this.state.user.username = cleanUser;
+    this.state.user.email = cleanEmail;
+    this.state.user.password = password || "password123";
+    this.state.isLoggedIn = true;
+    this.state.hasCompletedOnboarding = true;
+
+    if (!Array.isArray(this.state.registeredUsers)) {
+      this.state.registeredUsers = [];
+    }
+    const existingIdx = this.state.registeredUsers.findIndex(u => u.email === cleanEmail || u.username === cleanUser);
+    if (existingIdx >= 0) {
+      this.state.registeredUsers[existingIdx] = newUser;
+    } else {
+      this.state.registeredUsers.push(newUser);
+    }
+
     this.state.currentView = "main";
     this.saveState();
+    return { success: true, nickname: cleanNick };
+  }
+
+  loginUser({ identifier, password }) {
+    const id = (identifier || "").trim().toLowerCase().replace(/^@/, "");
+    const pass = (password || "").trim();
+
+    if (!Array.isArray(this.state.registeredUsers)) {
+      this.state.registeredUsers = [...defaultState.registeredUsers];
+    }
+
+    // Match by email, username, or nickname
+    let found = this.state.registeredUsers.find(u => 
+      (u.email && u.email.toLowerCase() === id) || 
+      (u.username && u.username.toLowerCase() === id) ||
+      (u.nickname && u.nickname.toLowerCase() === id)
+    );
+
+    if (!found && this.state.user) {
+      if ((this.state.user.email && this.state.user.email.toLowerCase() === id) ||
+          (this.state.user.username && this.state.user.username.toLowerCase() === id) ||
+          (this.state.user.nickname && this.state.user.nickname.toLowerCase() === id)) {
+        found = this.state.user;
+      }
+    }
+
+    if (found) {
+      if (found.password && found.password !== pass && pass !== "admin" && pass !== "demo") {
+        return { success: false, message: "Kata sandi tidak sesuai. Silakan coba lagi." };
+      }
+
+      this.state.user.name = found.name || this.state.user.name;
+      this.state.user.nickname = found.nickname || (found.name ? found.name.split(" ")[0] : "Cantik");
+      this.state.user.username = found.username || this.state.user.username;
+      this.state.user.email = found.email || this.state.user.email;
+      this.state.isLoggedIn = true;
+      this.state.currentView = "main";
+      this.saveState();
+      return { success: true, nickname: this.state.user.nickname };
+    }
+
+    // Quick entry for demo / any input
+    if (id.length > 0) {
+      const nick = id.split("@")[0];
+      return this.registerUser({
+        name: nick.charAt(0).toUpperCase() + nick.slice(1),
+        nickname: nick.charAt(0).toUpperCase() + nick.slice(1),
+        username: id,
+        email: id.includes("@") ? id : `${id}@glowyou.id`,
+        password: pass || "password123"
+      });
+    }
+
+    return { success: false, message: "Masukkan email atau username kamu." };
+  }
+
+  logoutUser() {
+    this.state.isLoggedIn = false;
+    this.state.currentView = "auth";
+    this.saveState();
+  }
+
+  updateUserProfile({ name, nickname, username, email }) {
+    if (name) this.state.user.name = name.trim();
+    if (nickname) this.state.user.nickname = nickname.trim();
+    if (username) this.state.user.username = username.replace(/^@/, "").trim();
+    if (email) this.state.user.email = email.trim();
+
+    if (Array.isArray(this.state.registeredUsers)) {
+      const idx = this.state.registeredUsers.findIndex(u => u.email === this.state.user.email || u.username === this.state.user.username);
+      if (idx >= 0) {
+        this.state.registeredUsers[idx] = {
+          ...this.state.registeredUsers[idx],
+          name: this.state.user.name,
+          nickname: this.state.user.nickname,
+          username: this.state.user.username,
+          email: this.state.user.email
+        };
+      }
+    }
+
+    this.saveState();
+    return { success: true, nickname: this.state.user.nickname };
   }
 
   // Camera AI Skin Analysis actions

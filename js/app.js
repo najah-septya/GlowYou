@@ -275,6 +275,11 @@ class GlowApp {
     this.productDetailQty = 1;
     this.searchQuery = "";
 
+    // Auth & Personalization States
+    this.authMode = "register"; // "register" | "login"
+    this.showAuthPassword = false;
+    this.showEditProfileModal = false;
+
     // Camera AI Scanner States
     this.cameraFacingMode = "user";
     this.cameraStream = null;
@@ -296,6 +301,13 @@ class GlowApp {
       return;
     }
 
+    // Require login / auth screen if not logged in
+    if (!state.isLoggedIn && state.currentView !== "splash" && state.currentView !== "onboarding") {
+      this.renderAuthScreen();
+      this.hideBottomNav();
+      return;
+    }
+
     // Stop camera stream if navigating away from camera screen
     if (state.currentView !== "camera-scan" && this.cameraStream) {
       this.stopCameraStream();
@@ -308,6 +320,10 @@ class GlowApp {
         break;
       case "onboarding":
         this.renderOnboarding();
+        this.hideBottomNav();
+        break;
+      case "auth":
+        this.renderAuthScreen();
         this.hideBottomNav();
         break;
       case "camera-scan":
@@ -537,6 +553,313 @@ class GlowApp {
   }
 
   // ==========================================
+  // AUTHENTICATION & PERSONALIZATION SCREEN
+  // ==========================================
+  renderAuthScreen() {
+    const isReg = this.authMode === "register";
+
+    this.container.innerHTML = `
+      <div class="min-h-screen bg-gradient-to-b from-[#FDE8E3] via-[#FAF5F0] to-[#FCE6E2] px-5 py-7 flex flex-col justify-between animate-fade-in select-none">
+        <!-- Top Glow Branding -->
+        <div class="flex flex-col items-center text-center">
+          <div class="w-18 h-18 rounded-full bg-white shadow-md border border-[#F4C6BE] flex items-center justify-center p-2 mb-2 relative animate-pulse-soft">
+            <div class="w-13 h-13 rounded-full bg-[#FAF0ED] flex items-center justify-center overflow-hidden">
+              <svg viewBox="0 0 100 100" class="w-10 h-10 text-[#C06C84]" fill="currentColor">
+                <circle cx="50" cy="45" r="28" fill="#F8C7BF"/>
+                <path d="M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z" fill="#7A404F"/>
+                <circle cx="42" cy="48" r="3" fill="#43222A"/>
+                <circle cx="58" cy="48" r="3" fill="#43222A"/>
+                <path d="M46 58c2 2 6 2 8 0" stroke="#43222A" stroke-width="2" stroke-linecap="round" fill="none"/>
+              </svg>
+            </div>
+            <div class="absolute -top-1 -right-1 bg-[#E58C8A] text-white p-1 rounded-full shadow-xs">
+              <i data-lucide="sparkles" class="w-3 h-3"></i>
+            </div>
+          </div>
+          <h1 class="text-2xl font-black text-[#433135] tracking-tight">GlowYou</h1>
+          <p class="text-xs text-[#876569] mt-0.5 font-medium">Layanan Skincare Personil Khusus Untukmu</p>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="w-full max-w-sm mx-auto my-3 bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-xl border border-[#F2D7D0]">
+          <!-- Switch Tabs (Daftar Akun / Masuk) -->
+          <div class="flex rounded-2xl bg-[#FAF0ED] p-1 mb-4 border border-[#F4C6BE]">
+            <button 
+              onclick="app.toggleAuthMode('register')" 
+              class="flex-1 py-2 text-xs font-bold rounded-xl transition-all ${isReg ? 'bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white shadow-sm' : 'text-[#7B6367] hover:text-[#433135]'}"
+            >
+              Daftar Akun
+            </button>
+            <button 
+              onclick="app.toggleAuthMode('login')" 
+              class="flex-1 py-2 text-xs font-bold rounded-xl transition-all ${!isReg ? 'bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white shadow-sm' : 'text-[#7B6367] hover:text-[#433135]'}"
+            >
+              Masuk
+            </button>
+          </div>
+
+          ${isReg ? `
+            <!-- FORM DAFTAR & SETUP PERSONALISASI -->
+            <div class="space-y-3 animate-fade-in">
+              <div>
+                <label class="block text-[11px] font-bold text-[#433135] mb-1">Nama Lengkap</label>
+                <div class="relative">
+                  <i data-lucide="user" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input 
+                    id="auth-name" 
+                    type="text" 
+                    placeholder="Contoh: Najah Septya" 
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-[#E8D1CB] text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                  />
+                </div>
+              </div>
+
+              <!-- NAMA PANGGILAN (FITUR UTAMA LAYANAN PERSONAL) -->
+              <div class="p-3 rounded-2xl bg-gradient-to-r from-[#FFF5F2] to-[#FEEDEA] border border-[#F7C6BC] shadow-xs">
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-[11px] font-black text-[#A24B5C] flex items-center gap-1.5">
+                    <i data-lucide="heart" class="w-3.5 h-3.5 text-[#E58C8A] fill-current"></i>
+                    Nama Panggilan Kamu
+                  </label>
+                  <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-[#E58C8A] text-white">Personil ⭐</span>
+                </div>
+                <div class="relative">
+                  <i data-lucide="smile" class="w-4 h-4 text-[#A24B5C] absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input 
+                    id="auth-nickname" 
+                    type="text" 
+                    placeholder="Contoh: Najah / Sisil / Alifa" 
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-[#F4C6BE] text-xs font-bold text-[#433135] focus:outline-none focus:border-[#C06C84] bg-white shadow-inner"
+                  />
+                </div>
+                <p class="text-[10px] text-[#8C3A4B] mt-1 leading-tight">
+                  GlowYou akan menyapamu akrab dengan nama ini di setiap rekomendasi & analisis 💕
+                </p>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-[#433135] mb-1">Username</label>
+                <div class="relative">
+                  <i data-lucide="at-sign" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input 
+                    id="auth-username" 
+                    type="text" 
+                    placeholder="Contoh: najah_glow" 
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-[#E8D1CB] text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-[#433135] mb-1">Email</label>
+                <div class="relative">
+                  <i data-lucide="mail" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input 
+                    id="auth-email" 
+                    type="email" 
+                    placeholder="kamu@email.com" 
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-[#E8D1CB] text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-[#433135] mb-1">Kata Sandi (Password)</label>
+                <div class="relative">
+                  <i data-lucide="lock" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input 
+                    id="auth-password" 
+                    type="${this.showAuthPassword ? 'text' : 'password'}" 
+                    placeholder="Minimal 4 karakter" 
+                    class="w-full pl-9 pr-10 py-2 rounded-xl border border-[#E8D1CB] text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                  />
+                  <button 
+                    type="button" 
+                    onclick="app.toggleAuthPasswordVisibility()" 
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <i data-lucide="${this.showAuthPassword ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button 
+                onclick="app.submitRegister()" 
+                class="w-full mt-2 py-3 px-4 rounded-2xl bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white font-bold text-xs shadow-lg shadow-[#D6727F]/30 hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>Mulai Layanan Personil ✨</span>
+              </button>
+            </div>
+          ` : `
+            <!-- FORM LOGIN MASUK -->
+            <div class="space-y-3.5 animate-fade-in">
+              <div>
+                <label class="block text-[11px] font-bold text-[#433135] mb-1">Email atau Username</label>
+                <div class="relative">
+                  <i data-lucide="mail" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input 
+                    id="auth-login-identifier" 
+                    type="text" 
+                    placeholder="alifa@glowyou.id atau alifanajwa" 
+                    class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#E8D1CB] text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-[#433135] mb-1">Kata Sandi (Password)</label>
+                <div class="relative">
+                  <i data-lucide="lock" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input 
+                    id="auth-login-password" 
+                    type="${this.showAuthPassword ? 'text' : 'password'}" 
+                    placeholder="Masukkan kata sandi" 
+                    class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#E8D1CB] text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                  />
+                  <button 
+                    type="button" 
+                    onclick="app.toggleAuthPasswordVisibility()" 
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <i data-lucide="${this.showAuthPassword ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button 
+                onclick="app.submitLogin()" 
+                class="w-full mt-2 py-3 px-4 rounded-2xl bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white font-bold text-xs shadow-lg shadow-[#D6727F]/30 hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>Masuk ke Akun</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+
+              <!-- Quick Demo Fill -->
+              <button 
+                onclick="app.fillDemoCredentials()" 
+                class="w-full py-2 px-3 rounded-xl border border-[#EAD5CF] text-[11px] font-semibold text-[#876569] hover:bg-[#FAF0ED] transition-all flex items-center justify-center gap-1.5"
+              >
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#E58C8A]"></i>
+                <span>Gunakan Akun Demo (Alifa)</span>
+              </button>
+            </div>
+          `}
+
+          <!-- Guest Mode -->
+          <div class="mt-4 pt-3 border-t border-[#F0DFD9] text-center">
+            <button 
+              onclick="app.continueAsGuest()" 
+              class="text-[11px] font-medium text-gray-400 hover:text-[#A24B5C] transition-all"
+            >
+              Lewati untuk coba langsung (Mode Tamu) →
+            </button>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-[10px] text-gray-400">
+          GlowYou • Kenali Kulitmu, Raih Versi Terbaikmu
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+
+  toggleAuthMode(mode) {
+    this.authMode = mode;
+    this.render();
+  }
+
+  toggleAuthPasswordVisibility() {
+    this.showAuthPassword = !this.showAuthPassword;
+    this.render();
+  }
+
+  fillDemoCredentials() {
+    const idEl = document.getElementById("auth-login-identifier");
+    const passEl = document.getElementById("auth-login-password");
+    if (idEl) idEl.value = "alifa@glowyou.id";
+    if (passEl) passEl.value = "password123";
+    showToast("Kredensial demo diisi!");
+  }
+
+  submitRegister() {
+    const nameEl = document.getElementById("auth-name");
+    const nickEl = document.getElementById("auth-nickname");
+    const userEl = document.getElementById("auth-username");
+    const emailEl = document.getElementById("auth-email");
+    const passEl = document.getElementById("auth-password");
+
+    const name = nameEl ? nameEl.value.trim() : "";
+    const nickname = nickEl ? nickEl.value.trim() : "";
+    const username = userEl ? userEl.value.trim() : "";
+    const email = emailEl ? emailEl.value.trim() : "";
+    const password = passEl ? passEl.value.trim() : "";
+
+    if (!name) {
+      showToast("Mohon isi nama lengkapmu.", "error");
+      if (nameEl) nameEl.focus();
+      return;
+    }
+
+    if (!nickname) {
+      showToast("Mohon isi nama panggilan agar kami bisa menyapamu akrab.", "error");
+      if (nickEl) nickEl.focus();
+      return;
+    }
+
+    if (!email || !email.includes("@")) {
+      showToast("Mohon masukkan alamat email yang valid.", "error");
+      if (emailEl) emailEl.focus();
+      return;
+    }
+
+    if (password.length < 4) {
+      showToast("Kata sandi minimal 4 karakter.", "error");
+      if (passEl) passEl.focus();
+      return;
+    }
+
+    const res = store.registerUser({
+      name,
+      nickname,
+      username: username || nickname.toLowerCase().replace(/\s+/g, "_"),
+      email,
+      password
+    });
+
+    showToast(`Halo, ${res.nickname}! Akun personilmu siap 💕`);
+  }
+
+  submitLogin() {
+    const idEl = document.getElementById("auth-login-identifier");
+    const passEl = document.getElementById("auth-login-password");
+
+    const identifier = idEl ? idEl.value.trim() : "";
+    const password = passEl ? passEl.value.trim() : "";
+
+    if (!identifier) {
+      showToast("Masukkan email atau username kamu.", "error");
+      if (idEl) idEl.focus();
+      return;
+    }
+
+    const res = store.loginUser({ identifier, password });
+    if (res.success) {
+      showToast(`Selamat datang kembali, ${res.nickname}! ✨`);
+    } else {
+      showToast(res.message || "Gagal masuk. Periksa kembali email & kata sandi.", "error");
+    }
+  }
+
+  continueAsGuest() {
+    store.state.isLoggedIn = true;
+    store.state.hasCompletedOnboarding = true;
+    store.setView("main");
+    showToast("Masuk mode tamu. Kamu bisa daftar/login kapan saja di tab Profil!");
+  }
+
+  // ==========================================
   // 2. MAIN TABS (HOME, PRODUK, TIPS, PROFIL)
   // ==========================================
   renderMainTab(tab) {
@@ -571,8 +894,11 @@ class GlowApp {
         <!-- Top App Bar -->
         <div class="sticky top-0 z-20 bg-[#FAF5F0]/95 backdrop-blur-md px-5 pt-4 pb-3 border-b border-[#F0DFD9] flex items-center justify-between">
           <div>
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-[#B35264]">Selamat Datang</span>
-            <h2 class="text-base font-bold text-[#3B2C30]">Halo, ${user.name.split(" ")[0]} ✨</h2>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-[#B35264] flex items-center gap-1">
+              <i data-lucide="sparkles" class="w-3 h-3 text-[#E58C8A]"></i>
+              Layanan Personilmu
+            </span>
+            <h2 class="text-base font-bold text-[#3B2C30]">Halo, ${user.nickname || user.name.split(" ")[0]} ✨</h2>
           </div>
           <div class="flex items-center gap-2.5">
             <button onclick="store.setView('cart')" class="relative p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54] hover:bg-[#FCECE9] transition-all">
@@ -1086,7 +1412,7 @@ class GlowApp {
           <button onclick="store.setView('main')" class="p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54]">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
           </button>
-          <h3 class="text-sm font-bold text-[#3B2C30]">Your Custom Matches</h3>
+          <h3 class="text-sm font-bold text-[#3B2C30]">Match Khusus ${user.nickname || user.name.split(" ")[0]}</h3>
           <button onclick="store.setView('cart')" class="relative p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54]">
             <i data-lucide="shopping-bag" class="w-4 h-4"></i>
             <span class="cart-badge-count absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#B35264] text-white text-[10px] font-bold flex items-center justify-center">
@@ -1396,7 +1722,7 @@ class GlowApp {
           <button onclick="store.setView('main')" class="p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54]">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
           </button>
-          <h3 class="text-sm font-bold text-[#3B2C30]">Hasil Analisis Kulit</h3>
+          <h3 class="text-sm font-bold text-[#3B2C30]">Analisis Kulit ${store.state.user.nickname || store.state.user.name.split(" ")[0]}</h3>
           <button onclick="store.setView('quiz')" class="text-xs font-semibold text-[#A24B5C] hover:underline">
             Ulang
           </button>
@@ -2140,7 +2466,7 @@ class GlowApp {
               <span class="text-[10px] font-semibold text-[#A24B5C] bg-[#FAF0ED] px-2 py-0.5 rounded-md">Utama</span>
             </div>
             <div>
-              <p class="text-xs font-bold text-gray-800">Alifa Najwa (081234567890)</p>
+              <p class="text-xs font-bold text-gray-800">${store.state.user.name} (${store.state.user.nickname ? store.state.user.nickname + ' • ' : ''}081234567890)</p>
               <p class="text-[11px] text-gray-600 mt-0.5">Jl. Melati No. 18, Kebayoran Baru, Jakarta Selatan 12140</p>
             </div>
           </div>
@@ -2403,25 +2729,37 @@ class GlowApp {
     const skinInfo = user.skinType ? GLOW_DATA.skinTypes[user.skinType] : null;
 
     this.container.innerHTML = `
-      <div class="pb-24 animate-fade-in">
+      <div class="pb-24 animate-fade-in relative">
         <!-- Top App Bar -->
         <div class="sticky top-0 z-20 bg-[#FAF5F0]/95 backdrop-blur-md px-5 pt-4 pb-3 border-b border-[#F0DFD9] flex items-center justify-between">
           <h2 class="text-base font-bold text-[#3B2C30]">Profil Pengguna</h2>
-          <button onclick="showToast('Pengaturan aplikasi')" class="p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54]">
-            <i data-lucide="settings" class="w-4 h-4"></i>
+          <button onclick="app.openEditProfileModal()" class="p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54] hover:bg-[#FCE8E6] transition-all" title="Edit Profil">
+            <i data-lucide="edit-3" class="w-4 h-4 text-[#A24B5C]"></i>
           </button>
         </div>
 
         <div class="px-5 pt-4 space-y-4">
-          <!-- User Profile Card (Persis Wireframe Gambar 1 & 3) -->
-          <div class="p-4 rounded-3xl bg-white border border-[#EED7D1] shadow-xs flex items-center gap-3.5">
-            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-[#E58C8A] flex-shrink-0">
+          <!-- User Profile Card (Personil dengan Nama Panggilan) -->
+          <div class="p-4 rounded-3xl bg-white border border-[#EED7D1] shadow-xs flex items-start gap-3.5 relative overflow-hidden">
+            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-[#E58C8A] flex-shrink-0 relative">
               <img src="${user.avatar}" class="w-full h-full object-cover" alt="${user.name}">
+              <div class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white"></div>
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="text-sm font-bold text-[#3B2C30] leading-tight">${user.name}</h3>
-              <p class="text-xs text-gray-500 mt-0.5 truncate">${user.email}</p>
-              <div class="mt-1.5 flex items-center gap-1.5">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-[#3B2C30] leading-tight truncate">${user.name}</h3>
+                <button onclick="app.openEditProfileModal()" class="text-[10px] text-[#A24B5C] font-bold hover:underline flex items-center gap-0.5">
+                  <i data-lucide="edit-2" class="w-3 h-3"></i> Edit
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-0.5 truncate">@${user.username || 'alifanajwa'} • ${user.email}</p>
+              
+              <!-- NAMA PANGGILAN BADGE -->
+              <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#FFF0ED] to-[#FDE8E3] text-[#8C3A4B] border border-[#FADCD5] flex items-center gap-1 shadow-2xs">
+                  <i data-lucide="sparkles" class="w-2.5 h-2.5 text-[#E58C8A]"></i>
+                  Disapa: <strong class="text-[#A24B5C]">"${user.nickname || user.name.split(' ')[0]}"</strong>
+                </span>
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FAF0ED] text-[#A24B5C]">
                   ${skinInfo ? 'Kulit ' + skinInfo.name : 'Belum Tes Kulit'}
                 </span>
@@ -2432,7 +2770,7 @@ class GlowApp {
           <!-- Status Kondisi Kulit Saya & CTA Scan Kamera -->
           <div class="p-4 rounded-2xl bg-gradient-to-r from-[#FDE8E3] to-[#FCE6E2] border border-[#F4C6BE] shadow-xs flex items-center justify-between">
             <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-[#A24B5C]">Status Kulit Saya</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[#A24B5C]">Status Kulit ${user.nickname || user.name.split(' ')[0]}</span>
               <h4 class="text-xs font-bold text-[#3B2C30] mt-0.5">${skinInfo ? skinInfo.name : 'Belum Dianalisis'}</h4>
               <p class="text-[10px] text-gray-500 mt-0.5">${user.undertone ? 'Undertone: ' + user.undertone : 'Terakhir dicek: ' + (user.lastAnalysisDate || 'Hari ini')}</p>
             </div>
@@ -2444,8 +2782,22 @@ class GlowApp {
             </div>
           </div>
 
-          <!-- Menu Navigasi Profil (Persis List Gambar 1 & 3) -->
+          <!-- Menu Navigasi Profil -->
           <div class="rounded-2xl bg-white border border-[#EED7D1] shadow-xs divide-y divide-gray-100 overflow-hidden">
+            <!-- 0. Ubah Nama Panggilan & Data Diri -->
+            <div onclick="app.openEditProfileModal()" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-[#FFF2F0] text-[#A24B5C] flex items-center justify-center">
+                  <i data-lucide="user-check" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-800 block">Personalisasi & Nama Panggilan</span>
+                  <span class="text-[10px] text-gray-400">Atur panggilan: "${user.nickname || user.name.split(' ')[0]}"</span>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
+            </div>
+
             <!-- 1. Tipe Kulit Saya -->
             <div onclick="store.setView('scan-result')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
               <div class="flex items-center gap-3">
@@ -2510,19 +2862,19 @@ class GlowApp {
               <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
             </div>
 
-            <!-- 6. Pengaturan -->
-            <div onclick="showToast('Menu pengaturan akun')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
+            <!-- 6. Ganti Akun / Masuk Akun Lain -->
+            <div onclick="store.setView('auth')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center">
-                  <i data-lucide="sliders" class="w-4 h-4"></i>
+                <div class="w-8 h-8 rounded-xl bg-[#EBF5FB] text-[#2980B9] flex items-center justify-center">
+                  <i data-lucide="users" class="w-4 h-4"></i>
                 </div>
-                <span class="text-xs font-semibold text-gray-800">Pengaturan Akun</span>
+                <span class="text-xs font-semibold text-gray-800">Ganti / Tambah Akun</span>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
             </div>
 
             <!-- 7. Bantuan -->
-            <div onclick="showToast('Hubungi tim CS di support@glowyou.id')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
+            <div onclick="showToast('Hubungi tim CS kami di support@glowyou.id')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center">
                   <i data-lucide="help-circle" class="w-4 h-4"></i>
@@ -2544,14 +2896,128 @@ class GlowApp {
             </div>
           </div>
         </div>
+
+        <!-- MODAL EDIT PROFIL & NAMA PANGGILAN -->
+        ${this.showEditProfileModal ? `
+          <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+            <div class="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-[#F4C6BE] animate-slide-up space-y-4">
+              <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+                <div>
+                  <h3 class="text-sm font-extrabold text-[#3B2C30]">Ubah Profil & Sapaan</h3>
+                  <p class="text-[10px] text-gray-500">Sesuaikan nama panggilan personalmu</p>
+                </div>
+                <button onclick="app.closeEditProfileModal()" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400">
+                  <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <!-- NAMA PANGGILAN INPUT -->
+              <div class="p-3 rounded-2xl bg-gradient-to-r from-[#FFF5F2] to-[#FEEDEA] border border-[#F7C6BC]">
+                <label class="block text-[11px] font-black text-[#A24B5C] mb-1 flex items-center gap-1">
+                  <i data-lucide="heart" class="w-3 h-3 text-[#E58C8A] fill-current"></i>
+                  Nama Panggilan (Bagaimana Kami Menyapamu)
+                </label>
+                <input 
+                  id="edit-nickname" 
+                  type="text" 
+                  value="${user.nickname || user.name.split(' ')[0]}" 
+                  class="w-full px-3 py-2 rounded-xl border border-[#F4C6BE] text-xs font-bold text-[#433135] bg-white focus:outline-none focus:border-[#C06C84]"
+                />
+                <p class="text-[10px] text-[#8C3A4B] mt-1 leading-tight">
+                  Nama ini akan muncul di beranda dan rekomendasi skincare untukmu 💕
+                </p>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Nama Lengkap</label>
+                <input 
+                  id="edit-name" 
+                  type="text" 
+                  value="${user.name}" 
+                  class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84]"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Username</label>
+                  <input 
+                    id="edit-username" 
+                    type="text" 
+                    value="${user.username || 'alifanajwa'}" 
+                    class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84]"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Email</label>
+                  <input 
+                    id="edit-email" 
+                    type="email" 
+                    value="${user.email}" 
+                    class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84]"
+                  />
+                </div>
+              </div>
+
+              <div class="pt-2 flex items-center gap-2">
+                <button 
+                  onclick="app.closeEditProfileModal()" 
+                  class="flex-1 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                >
+                  Batal
+                </button>
+                <button 
+                  onclick="app.saveProfileChanges()" 
+                  class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white text-xs font-bold shadow-md hover:opacity-95"
+                >
+                  Simpan Perubahan
+                </button>
+              </div>
+            </div>
+          </div>
+        ` : ''}
       </div>
     `;
+    lucide.createIcons();
+  }
+
+  openEditProfileModal() {
+    this.showEditProfileModal = true;
+    this.render();
+  }
+
+  closeEditProfileModal() {
+    this.showEditProfileModal = false;
+    this.render();
+  }
+
+  saveProfileChanges() {
+    const nameEl = document.getElementById("edit-name");
+    const nickEl = document.getElementById("edit-nickname");
+    const userEl = document.getElementById("edit-username");
+    const emailEl = document.getElementById("edit-email");
+
+    const name = nameEl ? nameEl.value.trim() : "";
+    const nickname = nickEl ? nickEl.value.trim() : "";
+    const username = userEl ? userEl.value.trim() : "";
+    const email = emailEl ? emailEl.value.trim() : "";
+
+    if (!nickname) {
+      showToast("Nama panggilan tidak boleh kosong.", "error");
+      return;
+    }
+
+    store.updateUserProfile({ name, nickname, username, email });
+    this.showEditProfileModal = false;
+    showToast(`Profil berhasil disimpan! Halo, ${nickname} 💕`);
+    this.render();
   }
 
   handleLogout() {
-    if (confirm("Apakah kamu yakin ingin keluar dan mereset simulasi data?")) {
-      localStorage.removeItem("glowyou_app_state_v1");
-      location.reload();
+    const nick = store.state.user.nickname || "kamu";
+    if (confirm(`Apakah kamu yakin ingin keluar dari akun, ${nick}?`)) {
+      store.logoutUser();
+      showToast(`Sampai jumpa lagi, ${nick}! 👋`, "info");
     }
   }
 
