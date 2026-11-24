@@ -12,12 +12,19 @@ const defaultState = {
     nickname: "Alifa", // Nama panggilan personal
     username: "alifanajwa",
     email: "alifa@glowyou.id",
+    phone: "081234567890",
+    bio: "Semangat merawat kulit sehat & raih versi terbaik diriku ✨",
     password: "password123",
     avatar: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FCE8E6'/><circle cx='50' cy='42' r='24' fill='%23F8C7BF'/><path d='M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z' fill='%237A404F'/><circle cx='42' cy='46' r='2.5' fill='%2343222A'/><circle cx='58' cy='46' r='2.5' fill='%2343222A'/><path d='M46 54c2 2 6 2 8 0' stroke='%2343222A' stroke-width='2' stroke-linecap='round' fill='none'/></svg>",
     skinType: "oily", // Default atau null jika belum tes
     undertone: "Warm - Sand",
     undertoneHex: "#D5A073",
     focusArea: "Tone Match & Hydration",
+    shippingAddress: {
+      address: "Jl. Melati No. 18, Kebayoran Baru",
+      city: "Jakarta Selatan",
+      postalCode: "12140"
+    },
     scanMetrics: {
       sebum: 82,
       hydration: 64,
@@ -107,6 +114,19 @@ class GlowStore {
         }
         if (!state.user.password) {
           state.user.password = "password123";
+        }
+        if (!state.user.phone) {
+          state.user.phone = "081234567890";
+        }
+        if (!state.user.bio) {
+          state.user.bio = "Semangat merawat kulit sehat & raih versi terbaik diriku ✨";
+        }
+        if (!state.user.shippingAddress) {
+          state.user.shippingAddress = {
+            address: "Jl. Melati No. 18, Kebayoran Baru",
+            city: "Jakarta Selatan",
+            postalCode: "12140"
+          };
         }
         if (state.isLoggedIn === undefined) {
           state.isLoggedIn = true;
@@ -260,11 +280,27 @@ class GlowStore {
     this.saveState();
   }
 
-  updateUserProfile({ name, nickname, username, email }) {
-    if (name) this.state.user.name = name.trim();
-    if (nickname) this.state.user.nickname = nickname.trim();
-    if (username) this.state.user.username = username.replace(/^@/, "").trim();
-    if (email) this.state.user.email = email.trim();
+  updateUserProfile({ name, nickname, username, email, phone, bio, skinType, undertone, avatar, shippingAddress }) {
+    if (name !== undefined) this.state.user.name = name.trim();
+    if (nickname !== undefined) this.state.user.nickname = nickname.trim();
+    if (username !== undefined) this.state.user.username = username.replace(/^@/, "").trim();
+    if (email !== undefined) this.state.user.email = email.trim();
+    if (phone !== undefined) this.state.user.phone = phone.trim();
+    if (bio !== undefined) this.state.user.bio = bio.trim();
+    if (skinType !== undefined) this.state.user.skinType = skinType;
+    if (undertone !== undefined) {
+      this.state.user.undertone = undertone;
+      if (undertone.includes("Warm")) this.state.user.undertoneHex = "#D5A073";
+      else if (undertone.includes("Cool")) this.state.user.undertoneHex = "#ECC0B7";
+      else this.state.user.undertoneHex = "#E4BFA0";
+    }
+    if (avatar !== undefined) this.state.user.avatar = avatar;
+    if (shippingAddress !== undefined) {
+      this.state.user.shippingAddress = {
+        ...(this.state.user.shippingAddress || {}),
+        ...shippingAddress
+      };
+    }
 
     if (Array.isArray(this.state.registeredUsers)) {
       const idx = this.state.registeredUsers.findIndex(u => u.email === this.state.user.email || u.username === this.state.user.username);
@@ -274,7 +310,9 @@ class GlowStore {
           name: this.state.user.name,
           nickname: this.state.user.nickname,
           username: this.state.user.username,
-          email: this.state.user.email
+          email: this.state.user.email,
+          phone: this.state.user.phone,
+          avatar: this.state.user.avatar
         };
       }
     }

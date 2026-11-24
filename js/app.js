@@ -14,6 +14,30 @@ function formatRupiah(number) {
 // GlowYou Default Avatar SVG
 const GLOWYOU_FALLBACK_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FCE8E6'/><circle cx='50' cy='42' r='24' fill='%23F8C7BF'/><path d='M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z' fill='%237A404F'/><circle cx='42' cy='46' r='2.5' fill='%2343222A'/><circle cx='58' cy='46' r='2.5' fill='%2343222A'/><path d='M46 54c2 2 6 2 8 0' stroke='%2343222A' stroke-width='2' stroke-linecap='round' fill='none'/></svg>";
 
+// Koleksi Avatar Cantik Preset GlowYou
+const GLOW_AVATAR_PRESETS = [
+  {
+    id: "preset-1",
+    name: "Classic Glow",
+    svg: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FCE8E6'/><circle cx='50' cy='42' r='24' fill='%23F8C7BF'/><path d='M50 16c-18 0-26 12-26 24 0 10 5 18 10 22 2 4 4 10 3 14h26c-1-4 1-10 3-14 5-4 10-12 10-22 0-12-8-24-26-24z' fill='%237A404F'/><circle cx='42' cy='46' r='2.5' fill='%2343222A'/><circle cx='58' cy='46' r='2.5' fill='%2343222A'/><path d='M46 54c2 2 6 2 8 0' stroke='%2343222A' stroke-width='2' stroke-linecap='round' fill='none'/></svg>"
+  },
+  {
+    id: "preset-2",
+    name: "Hijab Pastel",
+    svg: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23F3EBFB'/><path d='M50 14c-19 0-30 16-30 38 0 20 8 36 30 36s30-16 30-36c0-22-11-38-30-38z' fill='%23D5B3E5'/><ellipse cx='50' cy='52' rx='16' ry='20' fill='%23F8C7BF'/><circle cx='44' cy='51' r='2.2' fill='%2343222A'/><circle cx='56' cy='51' r='2.2' fill='%2343222A'/><ellipse cx='42' cy='56' rx='3' ry='2' fill='%23FFA499' opacity='0.7'/><ellipse cx='58' cy='56' rx='3' ry='2' fill='%23FFA499' opacity='0.7'/><path d='M47 62c1.5 2 4.5 2 6 0' stroke='%23B35264' stroke-width='1.8' stroke-linecap='round' fill='none'/></svg>"
+  },
+  {
+    id: "preset-3",
+    name: "Soft Natural",
+    svg: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FFF4EC'/><circle cx='50' cy='44' r='23' fill='%23FBD3C7'/><path d='M26 42c0-16 10-28 24-28s24 12 24 28c0 10-3 18-7 22-2-6-4-10-8-12-3 8-6 10-9 10s-6-2-9-10c-4 2-6 6-8 12-4-4-7-12-7-22z' fill='%234A2E35'/><circle cx='43' cy='47' r='2.3' fill='%23361E23'/><circle cx='57' cy='47' r='2.3' fill='%23361E23'/><path d='M46 55c2 2 6 2 8 0' stroke='%23B35264' stroke-width='2' stroke-linecap='round' fill='none'/><circle cx='76' cy='28' r='3' fill='%23F49A88'/></svg>"
+  },
+  {
+    id: "preset-4",
+    name: "Chic Bun",
+    svg: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23EAF2F8'/><circle cx='50' cy='22' r='14' fill='%233B2C30'/><circle cx='50' cy='50' r='24' fill='%23F9C9BC'/><path d='M28 42c4-12 12-18 22-18s18 6 22 18c0 0-7-6-22-6s-22 6-22 6z' fill='%233B2C30'/><circle cx='43' cy='50' r='2.2' fill='%233B2C30'/><circle cx='57' cy='50' r='2.2' fill='%233B2C30'/><path d='M47 58c1.5 2 4.5 2 6 0' stroke='%23C06C84' stroke-width='2' stroke-linecap='round' fill='none'/><circle cx='34' cy='62' r='2.5' fill='%23F1A7A6'/><circle cx='66' cy='62' r='2.5' fill='%23F1A7A6'/></svg>"
+  }
+];
+
 // Toast Notification Manager
 function showToast(message, type = "success") {
   const toastContainer = document.getElementById("toast-container");
@@ -278,7 +302,9 @@ class GlowApp {
     // Auth & Personalization States
     this.authMode = "register"; // "register" | "login"
     this.showAuthPassword = false;
-    this.showEditProfileModal = false;
+    this.tempAvatar = null;
+    this.tempSkinType = null;
+    this.tempUndertone = null;
 
     // Camera AI Scanner States
     this.cameraFacingMode = "user";
@@ -324,6 +350,10 @@ class GlowApp {
         break;
       case "auth":
         this.renderAuthScreen();
+        this.hideBottomNav();
+        break;
+      case "edit-profile":
+        this.renderEditProfileScreen();
         this.hideBottomNav();
         break;
       case "camera-scan":
@@ -2733,39 +2763,66 @@ class GlowApp {
         <!-- Top App Bar -->
         <div class="sticky top-0 z-20 bg-[#FAF5F0]/95 backdrop-blur-md px-5 pt-4 pb-3 border-b border-[#F0DFD9] flex items-center justify-between">
           <h2 class="text-base font-bold text-[#3B2C30]">Profil Pengguna</h2>
-          <button onclick="app.openEditProfileModal()" class="p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54] hover:bg-[#FCE8E6] transition-all" title="Edit Profil">
+          <button onclick="app.openEditProfileScreen()" class="p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54] hover:bg-[#FCE8E6] transition-all" title="Edit Profil Lengkap">
             <i data-lucide="edit-3" class="w-4 h-4 text-[#A24B5C]"></i>
           </button>
         </div>
 
         <div class="px-5 pt-4 space-y-4">
-          <!-- User Profile Card (Personil dengan Nama Panggilan) -->
-          <div class="p-4 rounded-3xl bg-white border border-[#EED7D1] shadow-xs flex items-start gap-3.5 relative overflow-hidden">
-            <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-[#E58C8A] flex-shrink-0 relative">
-              <img src="${user.avatar}" class="w-full h-full object-cover" alt="${user.name}">
-              <div class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white"></div>
+          <!-- User Profile Card (Personil dengan Nama Panggilan & Bio Bebas) -->
+          <div class="p-4 rounded-3xl bg-white border border-[#EED7D1] shadow-xs flex flex-col gap-3 relative overflow-hidden">
+            <div class="flex items-start gap-3.5">
+              <div class="relative cursor-pointer group" onclick="app.openEditProfileScreen()" title="Klik untuk ganti foto">
+                <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-[#E58C8A] flex-shrink-0 shadow-sm">
+                  <img src="${user.avatar}" class="w-full h-full object-cover" alt="${user.name}">
+                </div>
+                <div class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-[#A24B5C] border-2 border-white flex items-center justify-center text-white shadow-xs">
+                  <i data-lucide="camera" class="w-2.5 h-2.5"></i>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-sm font-bold text-[#3B2C30] leading-tight truncate">${user.name}</h3>
+                  <button onclick="app.openEditProfileScreen()" class="text-[11px] text-[#A24B5C] font-bold hover:underline flex items-center gap-1 bg-[#FAF0ED] px-2 py-0.5 rounded-lg border border-[#F4C6BE]">
+                    <i data-lucide="edit-2" class="w-3 h-3"></i> Edit
+                  </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-0.5 truncate">@${user.username || 'alifanajwa'} • ${user.email}</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">${user.phone || '081234567890'}</p>
+              </div>
             </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between">
-                <h3 class="text-sm font-bold text-[#3B2C30] leading-tight truncate">${user.name}</h3>
-                <button onclick="app.openEditProfileModal()" class="text-[10px] text-[#A24B5C] font-bold hover:underline flex items-center gap-0.5">
-                  <i data-lucide="edit-2" class="w-3 h-3"></i> Edit
-                </button>
-              </div>
-              <p class="text-xs text-gray-500 mt-0.5 truncate">@${user.username || 'alifanajwa'} • ${user.email}</p>
-              
-              <!-- NAMA PANGGILAN BADGE -->
-              <div class="mt-2 flex flex-wrap items-center gap-1.5">
-                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#FFF0ED] to-[#FDE8E3] text-[#8C3A4B] border border-[#FADCD5] flex items-center gap-1 shadow-2xs">
-                  <i data-lucide="sparkles" class="w-2.5 h-2.5 text-[#E58C8A]"></i>
-                  Disapa: <strong class="text-[#A24B5C]">"${user.nickname || user.name.split(' ')[0]}"</strong>
-                </span>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FAF0ED] text-[#A24B5C]">
-                  ${skinInfo ? 'Kulit ' + skinInfo.name : 'Belum Tes Kulit'}
-                </span>
-              </div>
+
+            <!-- Bio Pengguna -->
+            <div class="p-2.5 rounded-xl bg-[#FAF5F0] border border-[#F0DFD9]">
+              <p class="text-xs text-[#5D464B] italic leading-relaxed">
+                "${user.bio || 'Semangat merawat kulit sehat & raih versi terbaik diriku ✨'}"
+              </p>
+            </div>
+
+            <!-- Badges Sapaan & Tipe Kulit -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-[#FFF0ED] to-[#FDE8E3] text-[#8C3A4B] border border-[#FADCD5] flex items-center gap-1 shadow-2xs">
+                <i data-lucide="sparkles" class="w-3 h-3 text-[#E58C8A]"></i>
+                Disapa: <strong class="text-[#A24B5C]">"${user.nickname || user.name.split(' ')[0]}"</strong>
+              </span>
+              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#FAF0ED] text-[#A24B5C] border border-[#F4C6BE]">
+                ${skinInfo ? 'Kulit ' + skinInfo.name : 'Belum Tes Kulit'}
+              </span>
+              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                ${user.undertone || 'Warm - Sand'}
+              </span>
             </div>
           </div>
+
+          <!-- Tombol Akses Cepat Edit Profil Bebas -->
+          <button 
+            onclick="app.openEditProfileScreen()" 
+            class="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-[#FFF0ED] to-[#FDE8E3] border border-[#F4C6BE] text-[#A24B5C] text-xs font-bold hover:bg-[#FCE8E6] transition-all flex items-center justify-center gap-2 shadow-xs"
+          >
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+            <span>Ubah Foto, Sapaan & Preferensi Profil</span>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-[#E58C8A]"></i>
+          </button>
 
           <!-- Status Kondisi Kulit Saya & CTA Scan Kamera -->
           <div class="p-4 rounded-2xl bg-gradient-to-r from-[#FDE8E3] to-[#FCE6E2] border border-[#F4C6BE] shadow-xs flex items-center justify-between">
@@ -2784,15 +2841,15 @@ class GlowApp {
 
           <!-- Menu Navigasi Profil -->
           <div class="rounded-2xl bg-white border border-[#EED7D1] shadow-xs divide-y divide-gray-100 overflow-hidden">
-            <!-- 0. Ubah Nama Panggilan & Data Diri -->
-            <div onclick="app.openEditProfileModal()" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
+            <!-- 0. Ubah Profil Lengkap -->
+            <div onclick="app.openEditProfileScreen()" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl bg-[#FFF2F0] text-[#A24B5C] flex items-center justify-center">
                   <i data-lucide="user-check" class="w-4 h-4"></i>
                 </div>
                 <div>
-                  <span class="text-xs font-semibold text-gray-800 block">Personalisasi & Nama Panggilan</span>
-                  <span class="text-[10px] text-gray-400">Atur panggilan: "${user.nickname || user.name.split(' ')[0]}"</span>
+                  <span class="text-xs font-semibold text-gray-800 block">Edit Profil & Data Diri</span>
+                  <span class="text-[10px] text-gray-400">Ganti foto, sapaan, alamat & preferensi kulit</span>
                 </div>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
@@ -2851,18 +2908,7 @@ class GlowApp {
               </div>
             </div>
 
-            <!-- 5. Notifikasi -->
-            <div onclick="showToast('Notifikasi tips harian diaktifkan')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl bg-[#F3EBFB] text-[#7A4BA6] flex items-center justify-center">
-                  <i data-lucide="bell" class="w-4 h-4"></i>
-                </div>
-                <span class="text-xs font-semibold text-gray-800">Notifikasi Tips Harian</span>
-              </div>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
-            </div>
-
-            <!-- 6. Ganti Akun / Masuk Akun Lain -->
+            <!-- 5. Ganti Akun / Masuk Akun Lain -->
             <div onclick="store.setView('auth')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl bg-[#EBF5FB] text-[#2980B9] flex items-center justify-center">
@@ -2873,7 +2919,7 @@ class GlowApp {
               <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
             </div>
 
-            <!-- 7. Bantuan -->
+            <!-- 6. Bantuan -->
             <div onclick="showToast('Hubungi tim CS kami di support@glowyou.id')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center">
@@ -2884,7 +2930,7 @@ class GlowApp {
               <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
             </div>
 
-            <!-- 8. Keluar -->
+            <!-- 7. Keluar -->
             <div onclick="app.handleLogout()" class="p-3.5 flex items-center justify-between hover:bg-red-50 cursor-pointer transition-all text-red-600">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
@@ -2896,121 +2942,372 @@ class GlowApp {
             </div>
           </div>
         </div>
-
-        <!-- MODAL EDIT PROFIL & NAMA PANGGILAN -->
-        ${this.showEditProfileModal ? `
-          <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
-            <div class="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-[#F4C6BE] animate-slide-up space-y-4">
-              <div class="flex items-center justify-between pb-2 border-b border-gray-100">
-                <div>
-                  <h3 class="text-sm font-extrabold text-[#3B2C30]">Ubah Profil & Sapaan</h3>
-                  <p class="text-[10px] text-gray-500">Sesuaikan nama panggilan personalmu</p>
-                </div>
-                <button onclick="app.closeEditProfileModal()" class="p-1.5 rounded-full hover:bg-gray-100 text-gray-400">
-                  <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-              </div>
-
-              <!-- NAMA PANGGILAN INPUT -->
-              <div class="p-3 rounded-2xl bg-gradient-to-r from-[#FFF5F2] to-[#FEEDEA] border border-[#F7C6BC]">
-                <label class="block text-[11px] font-black text-[#A24B5C] mb-1 flex items-center gap-1">
-                  <i data-lucide="heart" class="w-3 h-3 text-[#E58C8A] fill-current"></i>
-                  Nama Panggilan (Bagaimana Kami Menyapamu)
-                </label>
-                <input 
-                  id="edit-nickname" 
-                  type="text" 
-                  value="${user.nickname || user.name.split(' ')[0]}" 
-                  class="w-full px-3 py-2 rounded-xl border border-[#F4C6BE] text-xs font-bold text-[#433135] bg-white focus:outline-none focus:border-[#C06C84]"
-                />
-                <p class="text-[10px] text-[#8C3A4B] mt-1 leading-tight">
-                  Nama ini akan muncul di beranda dan rekomendasi skincare untukmu 💕
-                </p>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-bold text-gray-700 mb-1">Nama Lengkap</label>
-                <input 
-                  id="edit-name" 
-                  type="text" 
-                  value="${user.name}" 
-                  class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84]"
-                />
-              </div>
-
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Username</label>
-                  <input 
-                    id="edit-username" 
-                    type="text" 
-                    value="${user.username || 'alifanajwa'}" 
-                    class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84]"
-                  />
-                </div>
-                <div>
-                  <label class="block text-[11px] font-bold text-gray-700 mb-1">Email</label>
-                  <input 
-                    id="edit-email" 
-                    type="email" 
-                    value="${user.email}" 
-                    class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84]"
-                  />
-                </div>
-              </div>
-
-              <div class="pt-2 flex items-center gap-2">
-                <button 
-                  onclick="app.closeEditProfileModal()" 
-                  class="flex-1 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50"
-                >
-                  Batal
-                </button>
-                <button 
-                  onclick="app.saveProfileChanges()" 
-                  class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white text-xs font-bold shadow-md hover:opacity-95"
-                >
-                  Simpan Perubahan
-                </button>
-              </div>
-            </div>
-          </div>
-        ` : ''}
       </div>
     `;
     lucide.createIcons();
   }
 
-  openEditProfileModal() {
-    this.showEditProfileModal = true;
+  // ==========================================
+  // FULL EDIT PROFILE & CUSTOMIZATION SCREEN
+  // ==========================================
+  renderEditProfileScreen() {
+    const user = store.state.user;
+    const currentAvatar = this.tempAvatar || user.avatar;
+    const currentSkin = this.tempSkinType || user.skinType || "oily";
+    const currentUndertone = this.tempUndertone || user.undertone || "Warm - Sand";
+    const address = user.shippingAddress || { address: "", city: "", postalCode: "" };
+
+    const skinTypeList = [
+      { id: "normal", name: "Normal" },
+      { id: "dry", name: "Kering" },
+      { id: "oily", name: "Berminyak" },
+      { id: "combination", name: "Kombinasi" },
+      { id: "sensitive", name: "Sensitif" },
+      { id: "acne_prone", name: "Berjerawat" }
+    ];
+
+    const undertoneList = [
+      { id: "Warm - Sand", name: "Warm (Sand / Golden)" },
+      { id: "Cool - Pink", name: "Cool (Pink / Rose)" },
+      { id: "Neutral - Beige", name: "Neutral (Beige Seimbang)" }
+    ];
+
+    this.container.innerHTML = `
+      <div class="min-h-screen bg-[#FAF5F0] pb-12 animate-fade-in select-none">
+        <!-- Sticky Top Bar -->
+        <div class="sticky top-0 z-20 bg-[#FAF5F0]/95 backdrop-blur-md px-5 pt-4 pb-3 border-b border-[#F0DFD9] flex items-center justify-between">
+          <button onclick="store.setView('main')" class="p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54] hover:bg-[#FCE8E6]">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          </button>
+          <h3 class="text-sm font-bold text-[#3B2C30]">Ubah Profil & Data Diri</h3>
+          <button onclick="app.saveFullProfile()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white text-xs font-bold shadow-xs hover:opacity-95">
+            Simpan
+          </button>
+        </div>
+
+        <div class="px-5 pt-5 space-y-5">
+          <!-- 1. KUSTOMISASI AVATAR / FOTO PROFIL -->
+          <div class="p-5 rounded-3xl bg-white border border-[#EED7D1] shadow-xs flex flex-col items-center text-center">
+            <div class="relative mb-3">
+              <div class="w-24 h-24 rounded-full overflow-hidden border-3 border-[#E58C8A] shadow-md bg-white">
+                <img id="avatar-preview-img" src="${currentAvatar}" class="w-full h-full object-cover" alt="Preview Foto">
+              </div>
+              <label for="avatar-file-upload" class="absolute bottom-0 right-0 p-2 rounded-full bg-[#A24B5C] text-white shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-all" title="Unggah Foto dari HP">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+                <input type="file" id="avatar-file-upload" accept="image/*" class="hidden" onchange="app.handleAvatarUpload(event)">
+              </label>
+            </div>
+            
+            <h4 class="text-xs font-bold text-[#3B2C30]">Foto Profil & Avatar Bebas</h4>
+            <p class="text-[10px] text-gray-500 mt-0.5">Unggah foto wajah aslimu atau pilih salah satu avatar cantik di bawah</p>
+
+            <div class="mt-3 flex items-center gap-2">
+              <label for="avatar-file-upload" class="px-3 py-1.5 rounded-xl bg-[#FAF0ED] text-[#A24B5C] border border-[#F4C6BE] text-xs font-semibold cursor-pointer hover:bg-[#FCE8E6] transition-all flex items-center gap-1.5">
+                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                <span>Unggah Foto Sendiri</span>
+              </label>
+            </div>
+
+            <!-- Koleksi Avatar Preset -->
+            <div class="mt-4 pt-3 border-t border-gray-100 w-full">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Pilihan Avatar GlowYou</span>
+              <div class="flex items-center justify-center gap-3">
+                ${GLOW_AVATAR_PRESETS.map((preset, idx) => `
+                  <button 
+                    type="button"
+                    onclick="app.selectAvatarPreset('${encodeURIComponent(preset.svg)}')" 
+                    class="flex flex-col items-center gap-1 p-1 rounded-2xl border-2 transition-all ${currentAvatar === preset.svg ? 'border-[#C06C84] bg-[#FFF2F0] scale-105 shadow-xs' : 'border-gray-200 hover:border-[#E58C8A]'}"
+                    title="${preset.name}"
+                  >
+                    <div class="w-11 h-11 rounded-full overflow-hidden bg-white">
+                      <img src="${preset.svg}" class="w-full h-full object-cover" alt="${preset.name}">
+                    </div>
+                    <span class="text-[9px] font-medium text-gray-600">${preset.name.split(" ")[0]}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. DATA DIRI & SAPAAN PERSONIL -->
+          <div class="p-5 rounded-3xl bg-white border border-[#EED7D1] shadow-xs space-y-3.5">
+            <h4 class="text-xs font-extrabold text-[#3B2C30] flex items-center gap-1.5 pb-1 border-b border-gray-100">
+              <i data-lucide="user" class="w-4 h-4 text-[#A24B5C]"></i>
+              Data Sapaan & Identitas
+            </h4>
+
+            <!-- NAMA PANGGILAN ⭐ -->
+            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-[#FFF5F2] to-[#FEEDEA] border border-[#F7C6BC]">
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[11px] font-black text-[#A24B5C] flex items-center gap-1.5">
+                  <i data-lucide="heart" class="w-3.5 h-3.5 text-[#E58C8A] fill-current"></i>
+                  Nama Panggilan (Bagaimana Kami Menyapamu)
+                </label>
+                <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-[#E58C8A] text-white">Layanan Personil ⭐</span>
+              </div>
+              <input 
+                id="edit-nickname" 
+                type="text" 
+                value="${user.nickname || user.name.split(' ')[0]}" 
+                placeholder="Contoh: Najah / Sisil / Alifa" 
+                class="w-full px-3 py-2 rounded-xl border border-[#F4C6BE] text-xs font-bold text-[#433135] bg-white focus:outline-none focus:border-[#C06C84] shadow-inner"
+              />
+              <p class="text-[10px] text-[#8C3A4B] mt-1 leading-snug">
+                Nama panggilan ini akan muncul di ucapan selamat datang beranda dan rekomendasi skincare untukmu 💕
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Nama Lengkap</label>
+              <input 
+                id="edit-name" 
+                type="text" 
+                value="${user.name}" 
+                placeholder="Nama lengkapmu" 
+                class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Username</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">@</span>
+                  <input 
+                    id="edit-username" 
+                    type="text" 
+                    value="${(user.username || 'alifanajwa').replace(/^@/, '')}" 
+                    class="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Email</label>
+                <input 
+                  id="edit-email" 
+                  type="email" 
+                  value="${user.email}" 
+                  class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Bio / Slogan Cantik</label>
+              <input 
+                id="edit-bio" 
+                type="text" 
+                value="${user.bio || 'Semangat merawat kulit sehat & raih versi terbaik diriku ✨'}" 
+                placeholder="Contoh: Menuju glowing glass skin bebas noda ✨" 
+                class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+              />
+            </div>
+          </div>
+
+          <!-- 3. PREFERENSI KONDISI KULIT (BEBAS DIUBAH) -->
+          <div class="p-5 rounded-3xl bg-white border border-[#EED7D1] shadow-xs space-y-3.5">
+            <h4 class="text-xs font-extrabold text-[#3B2C30] flex items-center gap-1.5 pb-1 border-b border-gray-100">
+              <i data-lucide="sparkles" class="w-4 h-4 text-[#A24B5C]"></i>
+              Preferensi Kondisi Kulit
+            </h4>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1.5">Tipe Kulit Utama</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                ${skinTypeList.map(st => `
+                  <button 
+                    type="button" 
+                    onclick="app.selectEditSkinType('${st.id}')"
+                    class="py-2 px-2 rounded-xl text-[11px] font-bold transition-all ${currentSkin === st.id ? 'bg-[#A24B5C] text-white shadow-xs' : 'bg-[#FAF5F0] text-gray-700 hover:bg-[#FDE9E6]'}"
+                  >
+                    ${st.name}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1.5">Rona Dasar (Undertone)</label>
+              <div class="space-y-1.5">
+                ${undertoneList.map(ut => `
+                  <button 
+                    type="button" 
+                    onclick="app.selectEditUndertone('${ut.id}')"
+                    class="w-full py-2 px-3 rounded-xl text-xs font-semibold text-left transition-all flex items-center justify-between ${currentUndertone === ut.id ? 'bg-[#FFF0ED] text-[#A24B5C] border border-[#F4C6BE] font-bold' : 'bg-[#FAF5F0] text-gray-700 hover:bg-gray-100'}"
+                  >
+                    <span>${ut.name}</span>
+                    ${currentUndertone === ut.id ? '<i data-lucide="check" class="w-4 h-4 text-[#A24B5C]"></i>' : ''}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. KONTAK & ALAMAT PENGIRIMAN -->
+          <div class="p-5 rounded-3xl bg-white border border-[#EED7D1] shadow-xs space-y-3.5">
+            <h4 class="text-xs font-extrabold text-[#3B2C30] flex items-center gap-1.5 pb-1 border-b border-gray-100">
+              <i data-lucide="map-pin" class="w-4 h-4 text-[#A24B5C]"></i>
+              Kontak & Alamat Pengiriman
+            </h4>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Nomor Telepon / WhatsApp</label>
+              <input 
+                id="edit-phone" 
+                type="tel" 
+                value="${user.phone || '081234567890'}" 
+                placeholder="Contoh: 08123456789" 
+                class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+              />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Alamat Lengkap Rumah</label>
+              <textarea 
+                id="edit-address" 
+                rows="2" 
+                placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan" 
+                class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84] bg-white resize-none"
+              >${address.address || 'Jl. Melati No. 18, Kebayoran Baru'}</textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Kota / Kabupaten</label>
+                <input 
+                  id="edit-city" 
+                  type="text" 
+                  value="${address.city || 'Jakarta Selatan'}" 
+                  class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Kode Pos</label>
+                <input 
+                  id="edit-postal" 
+                  type="text" 
+                  value="${address.postalCode || '12140'}" 
+                  class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:border-[#C06C84] bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. TOMBOL SIMPAN -->
+          <div class="pt-2 pb-6 space-y-2">
+            <button 
+              type="button"
+              onclick="app.saveFullProfile()" 
+              class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white font-bold text-xs shadow-lg shadow-[#D6727F]/30 hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>Simpan Semua Perubahan Profil 💕</span>
+            </button>
+            <button 
+              type="button"
+              onclick="store.setView('main')" 
+              class="w-full py-2.5 text-center text-xs font-semibold text-gray-500 hover:text-gray-800"
+            >
+              Batal & Kembali
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+
+  openEditProfileScreen() {
+    const user = store.state.user;
+    this.tempAvatar = user.avatar;
+    this.tempSkinType = user.skinType || "oily";
+    this.tempUndertone = user.undertone || "Warm - Sand";
+    store.setView("edit-profile");
+  }
+
+  handleAvatarUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.tempAvatar = e.target.result;
+      const previewImg = document.getElementById("avatar-preview-img");
+      if (previewImg) previewImg.src = e.target.result;
+      showToast("Foto profil baru terpilih! Klik Simpan untuk menerapkan 💕");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  selectAvatarPreset(encodedSvg) {
+    const svg = decodeURIComponent(encodedSvg);
+    this.tempAvatar = svg;
+    const previewImg = document.getElementById("avatar-preview-img");
+    if (previewImg) previewImg.src = svg;
+    this.render();
+    showToast("Avatar pilihan diterapkan!");
+  }
+
+  selectEditSkinType(typeId) {
+    this.tempSkinType = typeId;
     this.render();
   }
 
-  closeEditProfileModal() {
-    this.showEditProfileModal = false;
+  selectEditUndertone(tone) {
+    this.tempUndertone = tone;
     this.render();
   }
 
-  saveProfileChanges() {
+  saveFullProfile() {
     const nameEl = document.getElementById("edit-name");
     const nickEl = document.getElementById("edit-nickname");
     const userEl = document.getElementById("edit-username");
     const emailEl = document.getElementById("edit-email");
+    const bioEl = document.getElementById("edit-bio");
+    const phoneEl = document.getElementById("edit-phone");
+    const addressEl = document.getElementById("edit-address");
+    const cityEl = document.getElementById("edit-city");
+    const postalEl = document.getElementById("edit-postal");
 
     const name = nameEl ? nameEl.value.trim() : "";
     const nickname = nickEl ? nickEl.value.trim() : "";
     const username = userEl ? userEl.value.trim() : "";
     const email = emailEl ? emailEl.value.trim() : "";
+    const bio = bioEl ? bioEl.value.trim() : "";
+    const phone = phoneEl ? phoneEl.value.trim() : "";
+    const address = addressEl ? addressEl.value.trim() : "";
+    const city = cityEl ? cityEl.value.trim() : "";
+    const postalCode = postalEl ? postalEl.value.trim() : "";
 
     if (!nickname) {
-      showToast("Nama panggilan tidak boleh kosong.", "error");
+      showToast("Nama panggilan tidak boleh kosong agar kami bisa menyapamu.", "error");
+      if (nickEl) nickEl.focus();
       return;
     }
 
-    store.updateUserProfile({ name, nickname, username, email });
-    this.showEditProfileModal = false;
+    store.updateUserProfile({
+      name: name || nickname,
+      nickname,
+      username: username || nickname.toLowerCase().replace(/\s+/g, "_"),
+      email: email || `${nickname.toLowerCase()}@glowyou.id`,
+      phone,
+      bio,
+      skinType: this.tempSkinType || store.state.user.skinType || "oily",
+      undertone: this.tempUndertone || store.state.user.undertone || "Warm - Sand",
+      avatar: this.tempAvatar || store.state.user.avatar,
+      shippingAddress: {
+        address,
+        city,
+        postalCode
+      }
+    });
+
+    this.tempAvatar = null;
+    this.tempSkinType = null;
+    this.tempUndertone = null;
+
     showToast(`Profil berhasil disimpan! Halo, ${nickname} 💕`);
-    this.render();
+    store.setTab("profile");
   }
 
   handleLogout() {
