@@ -311,6 +311,8 @@ class GlowApp {
     this.cameraStream = null;
     this.capturedPhoto = null;
     this.activeCameraResultTab = "matches"; // "matches" | "metrics"
+    this.historyFilter = "all"; // "all" | "camera" | "quiz"
+    this.historyMetricTab = "score"; // "score" | "hydration" | "sebum"
   }
 
   init() {
@@ -354,6 +356,10 @@ class GlowApp {
         break;
       case "edit-profile":
         this.renderEditProfileScreen();
+        this.hideBottomNav();
+        break;
+      case "skin-history":
+        this.renderSkinHistoryDashboard();
         this.hideBottomNav();
         break;
       case "camera-scan":
@@ -2875,14 +2881,20 @@ class GlowApp {
             </div>
 
             <!-- 2. Riwayat Analisis -->
-            <div onclick="showToast('Riwayat tes: ' + store.state.skinAnalysisHistory.length + ' sesi tercatat')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
+            <div onclick="store.setView('skin-history')" class="p-3.5 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-all">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-xl bg-[#F0F5ED] text-[#4E7D59] flex items-center justify-center">
                   <i data-lucide="history" class="w-4 h-4"></i>
                 </div>
-                <span class="text-xs font-semibold text-gray-800">Riwayat Analisis Kulit</span>
+                <div>
+                  <span class="text-xs font-semibold text-gray-800 block">Riwayat Analisis Kulit</span>
+                  <span class="text-[10px] text-gray-400">Dashboard perkembangan & riwayat tes</span>
+                </div>
               </div>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold text-[#4E7D59] bg-[#EBF5EE] px-2 py-0.5 rounded-full">${store.state.skinAnalysisHistory.length} sesi</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
+              </div>
             </div>
 
             <!-- 3. Pesanan Saya -->
@@ -3465,6 +3477,434 @@ class GlowApp {
         </div>
       </div>
     `;
+  }
+
+  // ==========================================
+  // 14. DASHBOARD RIWAYAT ANALISIS KULIT
+  // ==========================================
+  renderSkinHistoryDashboard() {
+    const user = store.state.user;
+    const history = store.state.skinAnalysisHistory || [];
+    const filter = this.historyFilter || "all";
+    const metricTab = this.historyMetricTab || "score";
+
+    const filteredHistory = history.filter(item => {
+      if (filter === "camera") return (item.method || "").includes("Kamera");
+      if (filter === "quiz") return (item.method || "").includes("Kuis");
+      return true;
+    });
+
+    const cameraCount = history.filter(h => (h.method || "").includes("Kamera")).length;
+    const quizCount = history.filter(h => (h.method || "").includes("Kuis")).length;
+
+    // Latest & baseline comparison
+    const latest = history[0] || null;
+    const oldest = history[history.length - 1] || null;
+
+    const currentScore = latest ? (latest.healthScore || 85) : 80;
+    const oldestScore = oldest ? (oldest.healthScore || 68) : 68;
+    const scoreDiff = currentScore - oldestScore;
+
+    const currentHydration = latest && latest.metrics ? (latest.metrics.hydration || 70) : 70;
+    const oldestHydration = oldest && oldest.metrics ? (oldest.metrics.hydration || 48) : 48;
+    const hydrationDiff = currentHydration - oldestHydration;
+
+    const currentSebum = latest && latest.metrics ? (latest.metrics.sebum || 68) : 68;
+    const oldestSebum = oldest && oldest.metrics ? (oldest.metrics.sebum || 88) : 88;
+    const sebumDiff = oldestSebum - currentSebum;
+
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "-";
+      try {
+        const parts = dateStr.split("-");
+        const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+        const day = parseInt(parts[2], 10);
+        const month = months[parseInt(parts[1], 10) - 1];
+        const year = parts[0];
+        return `${day} ${month} ${year}`;
+      } catch (e) {
+        return dateStr;
+      }
+    };
+
+    // Sequential chart data (oldest to newest, max 5)
+    const chartSessions = [...history].reverse().slice(-5);
+
+    // Recommended products based on current skin
+    const skinInfo = GLOW_DATA.skinTypes[user.skinType || (latest ? latest.skinType : "oily")];
+    const recProdIds = (latest && latest.recommendedProducts) || (skinInfo ? skinInfo.recommendedProducts : ["p4", "p5", "p6"]);
+    const recProducts = recProdIds.map(id => GLOW_DATA.products.find(p => p.id === id)).filter(Boolean).slice(0, 3);
+
+    this.container.innerHTML = `
+      <div class="min-h-screen bg-[#FAF5F0] pb-24 animate-fade-in select-none">
+        <!-- Sticky Top App Bar -->
+        <div class="sticky top-0 z-20 bg-[#FAF5F0]/95 backdrop-blur-md px-5 pt-4 pb-3 border-b border-[#F0DFD9] flex items-center justify-between">
+          <button onclick="store.setTab('profile')" class="p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54] hover:bg-[#FCE8E6] transition-all" title="Kembali ke Profil">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          </button>
+          <div class="text-center">
+            <h3 class="text-sm font-bold text-[#3B2C30]">Dashboard Riwayat Kulit</h3>
+            <span class="text-[10px] text-[#A24B5C] font-semibold flex items-center justify-center gap-1">
+              <i data-lucide="sparkles" class="w-3 h-3 text-[#E58C8A]"></i> Layanan Personil GlowYou
+            </span>
+          </div>
+          <button onclick="app.openCameraScanner()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#D6727F] to-[#B35264] text-white text-xs font-bold shadow-xs hover:opacity-95 transition-all flex items-center gap-1.5" title="Mulai Scan Kamera Baru">
+            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+            <span>Scan Baru</span>
+          </button>
+        </div>
+
+        <div class="px-5 pt-5 space-y-5">
+          <!-- 1. HERO SKOR KULIT & PERKEMBANGAN -->
+          <div class="p-5 rounded-3xl bg-gradient-to-br from-white via-[#FFF6F3] to-[#FEEDEA] border border-[#F4C6BE] shadow-xs space-y-4">
+            <div class="flex items-center justify-between">
+              <!-- Radial Score Circle -->
+              <div class="flex items-center gap-4">
+                <div class="relative w-18 h-18 rounded-full bg-white shadow-md border-4 border-[#E58C8A] flex flex-col items-center justify-center text-center">
+                  <span class="text-xl font-extrabold text-[#3B2C30] leading-none">${currentScore}</span>
+                  <span class="text-[9px] font-bold text-gray-400 mt-0.5">/ 100</span>
+                  <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#A24B5C] text-white flex items-center justify-center shadow-xs">
+                    <i data-lucide="sparkles" class="w-3 h-3"></i>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-full bg-[#E58C8A] text-white text-[10px] font-extrabold">
+                      Kondisi Sangat Baik
+                    </span>
+                  </div>
+                  <h4 class="text-sm font-extrabold text-[#3B2C30]">
+                    Kulit ${skinInfo ? skinInfo.name : 'Berminyak'}
+                  </h4>
+                  <div class="flex items-center gap-1.5 mt-0.5 text-[11px] text-gray-500 font-medium">
+                    <span class="w-2.5 h-2.5 rounded-full border border-gray-300" style="background-color: ${user.undertoneHex || '#D5A073'};"></span>
+                    <span>Undertone ${user.undertone || 'Warm Sand'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Perkembangan Poin Banner -->
+            <div class="p-2.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-emerald-800">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-lg bg-emerald-200/80 flex items-center justify-center text-emerald-700">
+                  <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                </div>
+                <span class="text-xs font-bold">
+                  +${scoreDiff > 0 ? scoreDiff : 18} Poin Peningkatan Kualitas Kulit
+                </span>
+              </div>
+              <span class="text-[10px] font-semibold text-emerald-600 bg-white px-2 py-0.5 rounded-full shadow-2xs">
+                ${history.length} Sesi
+              </span>
+            </div>
+
+            <!-- 3 Mini Metric Highlights -->
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="p-2.5 rounded-2xl bg-white border border-[#F4C6BE]/60 shadow-2xs">
+                <span class="text-[10px] text-gray-500 block font-medium">Hidrasi</span>
+                <span class="text-xs font-extrabold text-blue-600 mt-0.5 block">${currentHydration}%</span>
+                <span class="text-[9px] font-bold text-emerald-600 mt-0.5 block">+${hydrationDiff > 0 ? hydrationDiff : 24}% Naik 💧</span>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-white border border-[#F4C6BE]/60 shadow-2xs">
+                <span class="text-[10px] text-gray-500 block font-medium">Sebum Minyak</span>
+                <span class="text-xs font-extrabold text-amber-600 mt-0.5 block">${currentSebum}%</span>
+                <span class="text-[9px] font-bold text-emerald-600 mt-0.5 block">-${sebumDiff > 0 ? sebumDiff : 20}% Terkontrol 🌿</span>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-white border border-[#F4C6BE]/60 shadow-2xs">
+                <span class="text-[10px] text-gray-500 block font-medium">Pori & Tekstur</span>
+                <span class="text-xs font-extrabold text-[#A24B5C] mt-0.5 block">Halus</span>
+                <span class="text-[9px] font-bold text-gray-500 mt-0.5 block">Mengecil ✨</span>
+              </div>
+            </div>
+
+            <!-- AI Sapaan & Evaluasi Personil -->
+            <div class="pt-1 text-[11px] text-gray-600 leading-relaxed border-t border-rose-100 flex items-start gap-2">
+              <i data-lucide="heart" class="w-3.5 h-3.5 text-[#E58C8A] mt-0.5 shrink-0 fill-current"></i>
+              <p>
+                Halo <strong>${user.nickname || user.name.split(" ")[0]}</strong>! Dari ${history.length} kali analisis yang tercatat, hidrasi wajahmu konsisten meningkat dan minyak T-Zone lebih stabil berkat rutinitas perawatanmu.
+              </p>
+            </div>
+          </div>
+
+          <!-- 2. GRAFIK PERKEMBANGAN METRIK (PROGRESS TRENDS) -->
+          <div class="p-5 rounded-3xl bg-white border border-[#EED7D1] shadow-xs space-y-3.5">
+            <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+              <h4 class="text-xs font-extrabold text-[#3B2C30] flex items-center gap-1.5">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#A24B5C]"></i>
+                Grafik Tren Kesehatan Kulit
+              </h4>
+              <!-- Metric Tab Toggles -->
+              <div class="flex items-center p-0.5 rounded-xl bg-[#FAF0ED] text-[10px] font-bold">
+                <button onclick="app.setHistoryMetricTab('score')" class="px-2 py-1 rounded-lg transition-all ${metricTab === 'score' ? 'bg-[#A24B5C] text-white shadow-2xs' : 'text-gray-600 hover:text-[#A24B5C]'}">
+                  Skor
+                </button>
+                <button onclick="app.setHistoryMetricTab('hydration')" class="px-2 py-1 rounded-lg transition-all ${metricTab === 'hydration' ? 'bg-[#A24B5C] text-white shadow-2xs' : 'text-gray-600 hover:text-[#A24B5C]'}">
+                  Hidrasi
+                </button>
+                <button onclick="app.setHistoryMetricTab('sebum')" class="px-2 py-1 rounded-lg transition-all ${metricTab === 'sebum' ? 'bg-[#A24B5C] text-white shadow-2xs' : 'text-gray-600 hover:text-[#A24B5C]'}">
+                  Sebum
+                </button>
+              </div>
+            </div>
+
+            <!-- Visual Comparison Bars -->
+            <div class="pt-2">
+              <div class="flex items-end justify-between gap-3 h-36 px-2 pb-2 border-b border-gray-100">
+                ${chartSessions.map((session, idx) => {
+                  let value = 75;
+                  let colorClass = "from-[#D6727F] to-[#B35264]";
+                  let unit = "";
+
+                  if (metricTab === "score") {
+                    value = session.healthScore || (70 + idx * 8);
+                    colorClass = "from-[#E58C8A] to-[#B35264]";
+                    unit = "";
+                  } else if (metricTab === "hydration") {
+                    value = session.metrics ? session.metrics.hydration : (50 + idx * 10);
+                    colorClass = "from-sky-300 to-blue-500";
+                    unit = "%";
+                  } else if (metricTab === "sebum") {
+                    value = session.metrics ? session.metrics.sebum : (85 - idx * 8);
+                    colorClass = "from-amber-300 to-orange-500";
+                    unit = "%";
+                  }
+
+                  const heightPercent = Math.min(100, Math.max(25, value));
+                  const isLatestItem = (idx === chartSessions.length - 1);
+
+                  return `
+                    <div class="flex-1 flex flex-col items-center h-full justify-end group">
+                      <span class="text-[10px] font-extrabold ${isLatestItem ? 'text-[#A24B5C]' : 'text-gray-500'} mb-1.5 transition-all">
+                        ${value}${unit}
+                      </span>
+                      <div class="w-full max-w-[40px] rounded-t-xl bg-gradient-to-t ${colorClass} ${isLatestItem ? 'ring-2 ring-[#E58C8A] shadow-md' : 'opacity-75'} transition-all hover:opacity-100" style="height: ${heightPercent}%;"></div>
+                      <span class="text-[9px] font-semibold text-gray-500 mt-2 truncate max-w-[48px]">
+                        ${formatDate(session.date).split(" ").slice(0, 2).join(" ")}
+                      </span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-gray-400 mt-2 px-1">
+                <span>← Sesi Analisis Awal</span>
+                <span class="font-bold text-[#A24B5C]">Sesi Terbaru ✨</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. FILTER TABS SESI RIWAYAT -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <button 
+              onclick="app.setHistoryFilter('all')" 
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filter === 'all' ? 'bg-[#A24B5C] text-white shadow-xs' : 'bg-white border border-[#EED7D1] text-gray-700 hover:bg-[#FCE8E6]'}"
+            >
+              Semua Sesi (${history.length})
+            </button>
+            <button 
+              onclick="app.setHistoryFilter('camera')" 
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${filter === 'camera' ? 'bg-[#A24B5C] text-white shadow-xs' : 'bg-white border border-[#EED7D1] text-gray-700 hover:bg-[#FCE8E6]'}"
+            >
+              <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+              <span>Kamera AI (${cameraCount})</span>
+            </button>
+            <button 
+              onclick="app.setHistoryFilter('quiz')" 
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${filter === 'quiz' ? 'bg-[#A24B5C] text-white shadow-xs' : 'bg-white border border-[#EED7D1] text-gray-700 hover:bg-[#FCE8E6]'}"
+            >
+              <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+              <span>Kuis Interaktif (${quizCount})</span>
+            </button>
+          </div>
+
+          <!-- 4. DAFTAR KARTU SESI RIWAYAT -->
+          <div class="space-y-3">
+            ${filteredHistory.length === 0 ? `
+              <div class="p-8 rounded-3xl bg-white border border-[#EED7D1] text-center space-y-3 shadow-xs">
+                <div class="w-12 h-12 rounded-full bg-[#FAF0ED] text-[#A24B5C] mx-auto flex items-center justify-center">
+                  <i data-lucide="history" class="w-6 h-6"></i>
+                </div>
+                <h4 class="text-xs font-bold text-gray-700">Belum ada riwayat untuk kategori ini</h4>
+                <p class="text-[11px] text-gray-400 max-w-[200px] mx-auto">
+                  Lakukan scan kamera atau kuis untuk mulai mencatat riwayat kulitmu.
+                </p>
+                <button onclick="app.openCameraScanner()" class="px-4 py-2 rounded-xl bg-[#A24B5C] text-white text-xs font-bold shadow-xs">
+                  Mulai Scan Sekarang
+                </button>
+              </div>
+            ` : filteredHistory.map((session, idx) => {
+              const isCamera = (session.method || "").includes("Kamera");
+              const sTypeInfo = GLOW_DATA.skinTypes[session.skinType] || { name: session.skinType };
+              const metrics = session.metrics || { sebum: 70, hydration: 65, pores: "Normal", redness: "Normal", acneSpots: 0 };
+              const score = session.healthScore || (80 - idx * 4);
+
+              return `
+                <div class="p-4 rounded-3xl bg-white border border-[#EED7D1] shadow-xs space-y-3 hover:border-[#E58C8A] transition-all">
+                  <!-- Header Sesi: Tanggal & Metode -->
+                  <div class="flex items-center justify-between pb-2.5 border-b border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full ${isCamera ? 'bg-[#E58C8A]' : 'bg-emerald-500'}"></span>
+                      <span class="text-xs font-extrabold text-[#3B2C30]">
+                        ${formatDate(session.date)}
+                      </span>
+                      <span class="text-[10px] text-gray-400 font-medium">
+                        ${session.time || '14:00'} WIB
+                      </span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5">
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isCamera ? 'bg-[#FFF0ED] text-[#A24B5C] border border-[#F4C6BE]' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                        ${isCamera ? '📸 Kamera AI' : '📝 Kuis'}
+                      </span>
+                      <span class="px-2 py-0.5 rounded-full bg-[#FAF0ED] text-[#A24B5C] font-extrabold text-[10px]">
+                        ${score}/100
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Tipe Kulit & Undertone -->
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold block">Hasil Diagnosa</span>
+                      <h4 class="text-xs font-extrabold text-[#3B2C30] flex items-center gap-1.5 mt-0.5">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#E58C8A]"></i>
+                        Kulit ${sTypeInfo.name}
+                      </h4>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-[10px] text-gray-400 font-medium block">Rona Undertone</span>
+                      <span class="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 mt-0.5">
+                        <span class="w-2.5 h-2.5 rounded-full border border-gray-300" style="background-color: ${session.undertoneHex || '#D5A073'};"></span>
+                        ${session.undertone || 'Warm Sand'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- 4 Mini Metrik Chips -->
+                  <div class="grid grid-cols-4 gap-1.5 text-center text-[10px] font-semibold bg-[#FAF5F0] p-2 rounded-2xl">
+                    <div>
+                      <span class="text-gray-400 block text-[9px]">Sebum</span>
+                      <span class="text-amber-700 font-bold">${metrics.sebum}%</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-400 block text-[9px]">Hidrasi</span>
+                      <span class="text-blue-700 font-bold">${metrics.hydration}%</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-400 block text-[9px]">Pori-pori</span>
+                      <span class="text-[#A24B5C] font-bold truncate block" title="${metrics.pores}">${metrics.pores.split(" ")[0]}</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-400 block text-[9px]">Jerawat</span>
+                      <span class="text-rose-700 font-bold">${metrics.acneSpots || 0} noda</span>
+                    </div>
+                  </div>
+
+                  <!-- Summary Text -->
+                  <p class="text-[11px] text-gray-600 leading-snug">
+                    ${session.summary}
+                  </p>
+
+                  <!-- Card Actions -->
+                  <div class="flex items-center justify-between pt-1">
+                    <button 
+                      onclick="app.openHistorySessionDetail('${session.id}')" 
+                      class="px-3 py-1.5 rounded-xl bg-[#FAF0ED] text-[#A24B5C] hover:bg-[#A24B5C] hover:text-white transition-all text-xs font-bold flex items-center gap-1"
+                    >
+                      <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                      <span>Lihat Rincian Analisis</span>
+                    </button>
+                    <button 
+                      onclick="app.deleteHistorySession('${session.id}')" 
+                      class="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all" 
+                      title="Hapus Sesi Ini"
+                    >
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- 5. REKOMENDASI RUTINITAS BERDASARKAN HASIL -->
+          <div class="p-5 rounded-3xl bg-white border border-[#EED7D1] shadow-xs space-y-3.5">
+            <div class="flex items-center justify-between pb-1 border-b border-gray-100">
+              <h4 class="text-xs font-extrabold text-[#3B2C30] flex items-center gap-1.5">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-[#A24B5C]"></i>
+                Rekomendasi Berdasarkan Tren Kulitmu
+              </h4>
+              <button onclick="store.setTab('catalog')" class="text-[11px] font-bold text-[#A24B5C] hover:underline">
+                Lihat Semua
+              </button>
+            </div>
+            
+            <p class="text-[11px] text-gray-500">
+              Kombinasi produk yang terbukti menjaga kelembapan di atas 70% dan mengontrol minyak:
+            </p>
+
+            <div class="grid grid-cols-3 gap-2">
+              ${recProducts.map(p => `
+                <div onclick="store.setView('product-detail', { productId: '${p.id}' })" class="p-2 rounded-2xl border border-gray-100 bg-[#FAF5F0]/60 hover:bg-[#FFF2F0] cursor-pointer transition-all flex flex-col justify-between text-center">
+                  <div class="w-full h-16 rounded-xl overflow-hidden bg-white mb-1.5 shadow-2xs">
+                    <img src="${p.image}" class="w-full h-full object-cover" alt="${p.name}">
+                  </div>
+                  <h5 class="text-[10px] font-bold text-[#3B2C30] line-clamp-1">${p.name}</h5>
+                  <span class="text-[9px] font-extrabold text-[#A24B5C] mt-0.5">${formatRupiah(p.price)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- 6. BOTTOM CTA BUTTON -->
+          <div class="pt-2">
+            <button onclick="app.openCameraScanner()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#D6727F] via-[#C06C84] to-[#A24B5C] text-white text-xs font-extrabold shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2">
+              <i data-lucide="camera" class="w-4 h-4"></i>
+              <span>Mulai Analisis / Scan Kulit Baru</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    lucide.createIcons();
+  }
+
+  setHistoryFilter(filter) {
+    this.historyFilter = filter;
+    this.renderSkinHistoryDashboard();
+  }
+
+  setHistoryMetricTab(tab) {
+    this.historyMetricTab = tab;
+    this.renderSkinHistoryDashboard();
+  }
+
+  deleteHistorySession(sessionId) {
+    if (confirm("Hapus sesi analisis ini dari riwayatmu?")) {
+      store.deleteSkinHistoryItem(sessionId);
+      showToast("Sesi analisis berhasil dihapus.");
+      this.renderSkinHistoryDashboard();
+    }
+  }
+
+  openHistorySessionDetail(sessionId) {
+    const session = store.state.skinAnalysisHistory.find(s => s.id === sessionId);
+    if (!session) return;
+    
+    // Set active state to this session
+    store.state.user.skinType = session.skinType;
+    if (session.undertone) store.state.user.undertone = session.undertone;
+    if (session.undertoneHex) store.state.user.undertoneHex = session.undertoneHex;
+    if (session.metrics) store.state.user.scanMetrics = session.metrics;
+    if (session.photo) store.state.user.lastScanPhoto = session.photo;
+    
+    showToast(`Membuka detail analisis tanggal ${session.date} ✨`);
+    if ((session.method || "").includes("Kamera")) {
+      store.setView("scan-result");
+    } else {
+      store.setView("result");
+    }
   }
 }
 

@@ -46,9 +46,64 @@ const defaultState = {
   ],
   skinAnalysisHistory: [
     {
-      date: "2026-11-20",
+      id: "scan-20261125-01",
+      date: "2026-11-25",
+      time: "14:15",
+      method: "Kamera AI Scanner",
       skinType: "oily",
-      summary: "Pori-pori terlihat lebih besar, berminyak di T-zone, rentan jerawat."
+      undertone: "Warm - Sand",
+      undertoneHex: "#D5A073",
+      healthScore: 88,
+      metrics: {
+        sebum: 68,
+        hydration: 72,
+        pores: "Mengecil & Halus",
+        redness: "Rendah",
+        acneSpots: 1
+      },
+      summary: "Kondisi kelembapan optimal meningkat pesat (+24%). Produksi sebum di T-Zone terkontrol dengan baik.",
+      improvements: ["Hidrasi naik dari 61% ke 72%", "Sebum turun dari 79% ke 68%", "Hanya 1 titik noda tersisa"],
+      recommendedProducts: ["p4", "p5", "p6"]
+    },
+    {
+      id: "scan-20261120-01",
+      date: "2026-11-20",
+      time: "10:30",
+      method: "Kamera AI Scanner",
+      skinType: "oily",
+      undertone: "Warm - Sand",
+      undertoneHex: "#D5A073",
+      healthScore: 78,
+      metrics: {
+        sebum: 79,
+        hydration: 61,
+        pores: "Terlihat di T-Zone",
+        redness: "Ringan",
+        acneSpots: 3
+      },
+      summary: "Pori-pori di T-zone mulai merapat, hidrasi membaik setelah pemakaian pelembap rutin.",
+      improvements: ["Hidrasi naik dari 48% ke 61%", "Kemerahan berkurang"],
+      recommendedProducts: ["p1", "p5"]
+    },
+    {
+      id: "quiz-20261112-01",
+      date: "2026-11-12",
+      time: "16:45",
+      method: "Kuis Interaktif Kulit",
+      skinType: "oily",
+      undertone: "Warm - Sand",
+      undertoneHex: "#D5A073",
+      healthScore: 68,
+      metrics: {
+        sebum: 88,
+        hydration: 48,
+        pores: "Pori-pori Terbuka",
+        redness: "Sedang",
+        acneSpots: 5
+      },
+      summary: "Analisis awal: Dehidrasi kulit dengan kompensasi produksi minyak berlebih di dahi dan hidung.",
+      improvements: ["Sesi evaluasi pertama"],
+      recommendedProducts: ["p1", "p4", "p6"]
     }
   ],
   cart: [
@@ -133,6 +188,9 @@ class GlowStore {
         }
         if (!Array.isArray(state.registeredUsers) || state.registeredUsers.length === 0) {
           state.registeredUsers = [...defaultState.registeredUsers];
+        }
+        if (!Array.isArray(state.skinAnalysisHistory) || state.skinAnalysisHistory.length === 0 || !state.skinAnalysisHistory[0].metrics) {
+          state.skinAnalysisHistory = [...defaultState.skinAnalysisHistory];
         }
         return state;
       }
@@ -324,7 +382,9 @@ class GlowStore {
   // Camera AI Skin Analysis actions
   saveCameraAnalysis({ skinType, undertone, undertoneHex, focusArea, metrics, photo }) {
     const skinInfo = GLOW_DATA.skinTypes[skinType];
-    const todayStr = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
     this.state.user.skinType = skinType;
     if (undertone) this.state.user.undertone = undertone;
@@ -334,11 +394,23 @@ class GlowStore {
     if (photo) this.state.user.lastScanPhoto = photo;
     this.state.user.lastAnalysisDate = todayStr;
 
+    const sebumVal = metrics ? metrics.sebum : 70;
+    const hydVal = metrics ? metrics.hydration : 68;
+    const scoreVal = Math.min(96, Math.max(60, Math.round(100 - (sebumVal - 50) * 0.4 + hydVal * 0.3)));
+
     this.state.skinAnalysisHistory.unshift({
+      id: "scan-" + Date.now(),
       date: todayStr,
+      time: timeStr,
+      method: "Kamera AI Scanner",
       skinType: skinType,
       undertone: undertone || "Warm - Sand",
-      summary: `Hasil Scan Kamera: ${skinInfo ? skinInfo.name : skinType} • Undertone ${undertone || 'Warm Sand'} • Sebum ${metrics ? metrics.sebum : '78'}%`
+      undertoneHex: undertoneHex || "#D5A073",
+      healthScore: scoreVal,
+      metrics: metrics || { sebum: sebumVal, hydration: hydVal, pores: "Halus Terawat", redness: "Rendah", acneSpots: 1 },
+      summary: `Hasil Scan Kamera: ${skinInfo ? skinInfo.name : skinType} • Undertone ${undertone || 'Warm Sand'} • Sebum ${sebumVal}% • Hidrasi ${hydVal}%`,
+      recommendedProducts: skinInfo ? skinInfo.recommendedProducts : ["p4", "p5", "p6"],
+      photo: photo || this.state.user.lastScanPhoto
     });
 
     this.saveState();
@@ -349,16 +421,37 @@ class GlowStore {
     const skinInfo = GLOW_DATA.skinTypes[typeId];
     if (!skinInfo) return;
 
-    const todayStr = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     this.state.user.skinType = typeId;
     this.state.user.lastAnalysisDate = todayStr;
 
     this.state.skinAnalysisHistory.unshift({
+      id: "quiz-" + Date.now(),
       date: todayStr,
+      time: timeStr,
+      method: "Kuis Interaktif Kulit",
       skinType: typeId,
-      summary: skinInfo.characteristics[0] + ", " + skinInfo.characteristics[1]
+      undertone: this.state.user.undertone || "Warm - Sand",
+      undertoneHex: this.state.user.undertoneHex || "#D5A073",
+      healthScore: 78,
+      metrics: {
+        sebum: typeId === 'oily' ? 82 : (typeId === 'dry' ? 35 : 55),
+        hydration: typeId === 'dry' ? 42 : (typeId === 'oily' ? 58 : 70),
+        pores: typeId === 'oily' ? 'Terlihat di T-zone' : 'Normal',
+        redness: typeId === 'sensitive' ? 'Tinggi' : 'Normal',
+        acneSpots: typeId === 'acne_prone' ? 4 : 1
+      },
+      summary: skinInfo.characteristics[0] + ", " + skinInfo.characteristics[1],
+      recommendedProducts: skinInfo.recommendedProducts || ["p1", "p5"]
     });
 
+    this.saveState();
+  }
+
+  deleteSkinHistoryItem(id) {
+    this.state.skinAnalysisHistory = this.state.skinAnalysisHistory.filter(h => h.id !== id);
     this.saveState();
   }
 
