@@ -923,12 +923,17 @@ class GlowApp {
       <div class="pb-24 animate-fade-in">
         <!-- Top App Bar -->
         <div class="sticky top-0 z-20 bg-[#FAF5F0]/95 backdrop-blur-md px-5 pt-4 pb-3 border-b border-[#F0DFD9] flex items-center justify-between">
-          <div>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-[#B35264] flex items-center gap-1">
-              <i data-lucide="sparkles" class="w-3 h-3 text-[#E58C8A]"></i>
-              Layanan Personilmu
-            </span>
-            <h2 class="text-base font-bold text-[#3B2C30]">Halo, ${user.nickname || user.name.split(" ")[0]} ✨</h2>
+          <div class="flex items-center gap-2.5">
+            <div onclick="store.setTab('profile')" class="w-10 h-10 rounded-full overflow-hidden border-2 border-[#E58C8A] shadow-xs cursor-pointer active:scale-95 transition-all bg-white" title="Lihat Profil">
+              <img src="${user.avatar}" class="w-full h-full object-cover" alt="${user.name}">
+            </div>
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[#B35264] flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3 text-[#E58C8A]"></i>
+                Layanan Personilmu
+              </span>
+              <h2 class="text-base font-bold text-[#3B2C30]">Halo, ${user.nickname || user.name.split(" ")[0]} ✨</h2>
+            </div>
           </div>
           <div class="flex items-center gap-2.5">
             <button onclick="store.setView('cart')" class="relative p-2 rounded-xl bg-white border border-[#EED7D1] text-[#694F54] hover:bg-[#FCECE9] transition-all">
@@ -2956,6 +2961,7 @@ class GlowApp {
     const currentSkin = this.tempSkinType || user.skinType || "oily";
     const currentUndertone = this.tempUndertone || user.undertone || "Warm - Sand";
     const address = user.shippingAddress || { address: "", city: "", postalCode: "" };
+    const activePreset = GLOW_AVATAR_PRESETS.find(p => p.svg === currentAvatar);
 
     const skinTypeList = [
       { id: "normal", name: "Normal" },
@@ -2989,10 +2995,10 @@ class GlowApp {
           <!-- 1. KUSTOMISASI AVATAR / FOTO PROFIL -->
           <div class="p-5 rounded-3xl bg-white border border-[#EED7D1] shadow-xs flex flex-col items-center text-center">
             <div class="relative mb-3">
-              <div class="w-24 h-24 rounded-full overflow-hidden border-3 border-[#E58C8A] shadow-md bg-white">
-                <img id="avatar-preview-img" src="${currentAvatar}" class="w-full h-full object-cover" alt="Preview Foto">
+              <div class="w-24 h-24 rounded-full overflow-hidden border-3 border-[#E58C8A] shadow-md bg-white transition-all transform hover:scale-105">
+                <img id="avatar-preview-img" src="${currentAvatar}" class="w-full h-full object-cover transition-transform duration-300" alt="Preview Foto">
               </div>
-              <label for="avatar-file-upload" class="absolute bottom-0 right-0 p-2 rounded-full bg-[#A24B5C] text-white shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-all" title="Unggah Foto dari HP">
+              <label for="avatar-file-upload" class="absolute bottom-0 right-0 p-2 rounded-full bg-[#A24B5C] text-white shadow-md cursor-pointer hover:scale-110 active:scale-95 transition-all" title="Unggah Foto dari HP">
                 <i data-lucide="camera" class="w-4 h-4"></i>
                 <input type="file" id="avatar-file-upload" accept="image/*" class="hidden" onchange="app.handleAvatarUpload(event)">
               </label>
@@ -3001,8 +3007,13 @@ class GlowApp {
             <h4 class="text-xs font-bold text-[#3B2C30]">Foto Profil & Avatar Bebas</h4>
             <p class="text-[10px] text-gray-500 mt-0.5">Unggah foto wajah aslimu atau pilih salah satu avatar cantik di bawah</p>
 
+            <!-- Status Indikator Avatar Terpilih -->
+            <div id="avatar-active-name" class="mt-2 min-h-[24px]">
+              ${activePreset ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-[#A24B5C] bg-[#FDE9E6] px-2.5 py-0.5 rounded-full"><i data-lucide="check" class="w-3 h-3 text-[#A24B5C]"></i> Avatar Aktif: ${activePreset.name}</span>` : '<span class="inline-flex items-center gap-1 text-[11px] font-bold text-[#A24B5C] bg-[#FDE9E6] px-2.5 py-0.5 rounded-full"><i data-lucide="image" class="w-3 h-3 text-[#A24B5C]"></i> Foto Pribadi Aktif</span>'}
+            </div>
+
             <div class="mt-3 flex items-center gap-2">
-              <label for="avatar-file-upload" class="px-3 py-1.5 rounded-xl bg-[#FAF0ED] text-[#A24B5C] border border-[#F4C6BE] text-xs font-semibold cursor-pointer hover:bg-[#FCE8E6] transition-all flex items-center gap-1.5">
+              <label for="avatar-file-upload" class="px-3 py-1.5 rounded-xl bg-[#FAF0ED] text-[#A24B5C] border border-[#F4C6BE] text-xs font-semibold cursor-pointer hover:bg-[#FCE8E6] active:scale-95 transition-all flex items-center gap-1.5 shadow-xs">
                 <i data-lucide="upload" class="w-3.5 h-3.5"></i>
                 <span>Unggah Foto Sendiri</span>
               </label>
@@ -3011,20 +3022,28 @@ class GlowApp {
             <!-- Koleksi Avatar Preset -->
             <div class="mt-4 pt-3 border-t border-gray-100 w-full">
               <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Pilihan Avatar GlowYou</span>
-              <div class="flex items-center justify-center gap-3">
-                ${GLOW_AVATAR_PRESETS.map((preset, idx) => `
+              <div class="flex items-center justify-center gap-2.5 sm:gap-3">
+                ${GLOW_AVATAR_PRESETS.map((preset, idx) => {
+                  const isSelected = (currentAvatar === preset.svg);
+                  return `
                   <button 
                     type="button"
-                    onclick="app.selectAvatarPreset('${encodeURIComponent(preset.svg)}')" 
-                    class="flex flex-col items-center gap-1 p-1 rounded-2xl border-2 transition-all ${currentAvatar === preset.svg ? 'border-[#C06C84] bg-[#FFF2F0] scale-105 shadow-xs' : 'border-gray-200 hover:border-[#E58C8A]'}"
+                    data-avatar-preset-id="${preset.id}"
+                    onclick="app.selectAvatarPreset('${preset.id}')" 
+                    class="avatar-preset-btn relative flex flex-col items-center gap-1 p-1.5 rounded-2xl border-2 transition-all cursor-pointer active:scale-95 ${isSelected ? 'border-[#C06C84] bg-[#FFF2F0] scale-105 shadow-md ring-2 ring-[#F4C6BE]' : 'border-gray-200 hover:border-[#E58C8A] bg-white opacity-85 hover:opacity-100'}"
                     title="${preset.name}"
                   >
-                    <div class="w-11 h-11 rounded-full overflow-hidden bg-white">
+                    <!-- Indikator Checkmark -->
+                    <span class="avatar-check-badge absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#A24B5C] text-white flex items-center justify-center text-[9px] font-bold shadow-xs ${isSelected ? '' : 'hidden'}">
+                      ✓
+                    </span>
+                    <div class="w-12 h-12 rounded-full overflow-hidden bg-white shadow-inner flex items-center justify-center">
                       <img src="${preset.svg}" class="w-full h-full object-cover" alt="${preset.name}">
                     </div>
-                    <span class="text-[9px] font-medium text-gray-600">${preset.name.split(" ")[0]}</span>
+                    <span class="text-[10px] font-bold text-gray-700">${preset.name.split(" ")[0]}</span>
                   </button>
-                `).join('')}
+                  `;
+                }).join('')}
               </div>
             </div>
           </div>
@@ -3117,6 +3136,7 @@ class GlowApp {
                 ${skinTypeList.map(st => `
                   <button 
                     type="button" 
+                    data-skin-type-btn="${st.id}"
                     onclick="app.selectEditSkinType('${st.id}')"
                     class="py-2 px-2 rounded-xl text-[11px] font-bold transition-all ${currentSkin === st.id ? 'bg-[#A24B5C] text-white shadow-xs' : 'bg-[#FAF5F0] text-gray-700 hover:bg-[#FDE9E6]'}"
                   >
@@ -3132,6 +3152,8 @@ class GlowApp {
                 ${undertoneList.map(ut => `
                   <button 
                     type="button" 
+                    data-undertone-btn="${ut.id}"
+                    data-undertone-name="${ut.name}"
                     onclick="app.selectEditUndertone('${ut.id}')"
                     class="w-full py-2 px-3 rounded-xl text-xs font-semibold text-left transition-all flex items-center justify-between ${currentUndertone === ut.id ? 'bg-[#FFF0ED] text-[#A24B5C] border border-[#F4C6BE] font-bold' : 'bg-[#FAF5F0] text-gray-700 hover:bg-gray-100'}"
                   >
@@ -3233,29 +3255,103 @@ class GlowApp {
     reader.onload = (e) => {
       this.tempAvatar = e.target.result;
       const previewImg = document.getElementById("avatar-preview-img");
-      if (previewImg) previewImg.src = e.target.result;
-      showToast("Foto profil baru terpilih! Klik Simpan untuk menerapkan 💕");
+      if (previewImg) {
+        previewImg.src = e.target.result;
+        previewImg.classList.remove("scale-110");
+        void previewImg.offsetWidth;
+        previewImg.classList.add("scale-110");
+        setTimeout(() => previewImg.classList.remove("scale-110"), 250);
+      }
+
+      // Hilangkan status selected dari semua preset avatar
+      const presetButtons = document.querySelectorAll("[data-avatar-preset-id]");
+      presetButtons.forEach(btn => {
+        btn.className = "avatar-preset-btn relative flex flex-col items-center gap-1 p-1.5 rounded-2xl border-2 transition-all cursor-pointer active:scale-95 border-gray-200 hover:border-[#E58C8A] bg-white opacity-85 hover:opacity-100";
+        const badge = btn.querySelector(".avatar-check-badge");
+        if (badge) badge.classList.add("hidden");
+      });
+
+      const badgeEl = document.getElementById("avatar-active-name");
+      if (badgeEl) {
+        badgeEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-[#A24B5C] bg-[#FDE9E6] px-2.5 py-0.5 rounded-full"><i data-lucide="image" class="w-3 h-3 text-[#A24B5C]"></i> Foto Pribadi Aktif</span>`;
+        lucide.createIcons();
+      }
+
+      showToast("Foto profil terpilih! Klik Simpan untuk menerapkan 💕");
     };
     reader.readAsDataURL(file);
   }
 
-  selectAvatarPreset(encodedSvg) {
-    const svg = decodeURIComponent(encodedSvg);
-    this.tempAvatar = svg;
+  selectAvatarPreset(presetId) {
+    const preset = GLOW_AVATAR_PRESETS.find(p => p.id === presetId);
+    if (!preset) return;
+
+    this.tempAvatar = preset.svg;
+
+    // 1. Update Preview Image dengan animasi pop/bounce visual
     const previewImg = document.getElementById("avatar-preview-img");
-    if (previewImg) previewImg.src = svg;
-    this.render();
-    showToast("Avatar pilihan diterapkan!");
+    if (previewImg) {
+      previewImg.src = preset.svg;
+      previewImg.classList.remove("scale-110", "animate-pulse-soft");
+      void previewImg.offsetWidth; // force reflow
+      previewImg.classList.add("scale-110");
+      setTimeout(() => previewImg.classList.remove("scale-110"), 250);
+    }
+
+    // 2. Berikan highlight visual aktif & centang pada tombol avatar yang dipilih
+    const presetButtons = document.querySelectorAll("[data-avatar-preset-id]");
+    presetButtons.forEach(btn => {
+      const id = btn.getAttribute("data-avatar-preset-id");
+      const isSelected = (id === presetId);
+      if (isSelected) {
+        btn.className = "avatar-preset-btn relative flex flex-col items-center gap-1 p-1.5 rounded-2xl border-2 transition-all cursor-pointer active:scale-95 border-[#C06C84] bg-[#FFF2F0] scale-105 shadow-md ring-2 ring-[#F4C6BE]";
+        const badge = btn.querySelector(".avatar-check-badge");
+        if (badge) badge.classList.remove("hidden");
+      } else {
+        btn.className = "avatar-preset-btn relative flex flex-col items-center gap-1 p-1.5 rounded-2xl border-2 transition-all cursor-pointer active:scale-95 border-gray-200 hover:border-[#E58C8A] bg-white opacity-85 hover:opacity-100";
+        const badge = btn.querySelector(".avatar-check-badge");
+        if (badge) badge.classList.add("hidden");
+      }
+    });
+
+    // 3. Tampilkan teks indikator avatar aktif di bawah foto
+    const badgeEl = document.getElementById("avatar-active-name");
+    if (badgeEl) {
+      badgeEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-[#A24B5C] bg-[#FDE9E6] px-2.5 py-0.5 rounded-full"><i data-lucide="check" class="w-3 h-3 text-[#A24B5C]"></i> Avatar Terpilih: ${preset.name}</span>`;
+      lucide.createIcons();
+    }
+
+    showToast(`Avatar ${preset.name} dipilih! ✨`);
   }
 
   selectEditSkinType(typeId) {
     this.tempSkinType = typeId;
-    this.render();
+    const buttons = document.querySelectorAll("[data-skin-type-btn]");
+    buttons.forEach(btn => {
+      const id = btn.getAttribute("data-skin-type-btn");
+      if (id === typeId) {
+        btn.className = "py-2 px-2 rounded-xl text-[11px] font-bold transition-all bg-[#A24B5C] text-white shadow-xs";
+      } else {
+        btn.className = "py-2 px-2 rounded-xl text-[11px] font-bold transition-all bg-[#FAF5F0] text-gray-700 hover:bg-[#FDE9E6]";
+      }
+    });
   }
 
   selectEditUndertone(tone) {
     this.tempUndertone = tone;
-    this.render();
+    const buttons = document.querySelectorAll("[data-undertone-btn]");
+    buttons.forEach(btn => {
+      const id = btn.getAttribute("data-undertone-btn");
+      const name = btn.getAttribute("data-undertone-name");
+      if (id === tone) {
+        btn.className = "w-full py-2 px-3 rounded-xl text-xs font-semibold text-left transition-all flex items-center justify-between bg-[#FFF0ED] text-[#A24B5C] border border-[#F4C6BE] font-bold";
+        btn.innerHTML = `<span>${name}</span><i data-lucide="check" class="w-4 h-4 text-[#A24B5C]"></i>`;
+      } else {
+        btn.className = "w-full py-2 px-3 rounded-xl text-xs font-semibold text-left transition-all flex items-center justify-between bg-[#FAF5F0] text-gray-700 hover:bg-gray-100";
+        btn.innerHTML = `<span>${name}</span>`;
+      }
+    });
+    lucide.createIcons();
   }
 
   saveFullProfile() {
