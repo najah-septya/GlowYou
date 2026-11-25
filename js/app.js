@@ -1226,7 +1226,7 @@ class GlowApp {
   // 1. Live Camera Screen with Reticle & HUD (Gambar 2 inspirasi)
   renderCameraScan() {
     this.container.innerHTML = `
-      <div class="relative min-h-screen bg-[#1A1416] text-white flex flex-col justify-between overflow-hidden animate-fade-in select-none">
+      <div class="relative w-full h-full min-h-full flex-1 bg-[#1A1416] text-white flex flex-col justify-between overflow-hidden animate-fade-in select-none">
         <!-- Top App Bar Translucent -->
         <div class="relative z-30 px-5 pt-4 pb-3 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent">
           <button onclick="app.closeCameraScanner()" class="p-2.5 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all">
@@ -1274,7 +1274,7 @@ class GlowApp {
           <div class="absolute inset-0 bg-black/30 pointer-events-none"></div>
 
           <!-- Scanner Reticle Frame & Corner Brackets (Persis Gambar 2) -->
-          <div class="relative z-20 w-64 h-84 rounded-[48%] border-2 border-dashed border-white/70 flex items-center justify-center animate-scan-ring shadow-2xl">
+          <div class="relative z-20 w-56 h-72 sm:w-60 sm:h-76 max-h-[46vh] rounded-[48%] border-2 border-dashed border-white/70 flex items-center justify-center animate-scan-ring shadow-2xl">
             <!-- 4 Corner Brackets -->
             <div class="absolute -top-2.5 -left-2.5 w-6 h-6 border-t-3 border-l-3 border-[#E58C8A]"></div>
             <div class="absolute -top-2.5 -right-2.5 w-6 h-6 border-t-3 border-r-3 border-[#E58C8A]"></div>
@@ -1285,50 +1285,50 @@ class GlowApp {
             <div class="absolute left-3 right-3 h-1 bg-gradient-to-r from-transparent via-[#E58C8A] to-transparent shadow-[0_0_15px_#E58C8A] animate-scan-laser pointer-events-none"></div>
 
             <!-- Face Focus Reticle Target (T-Zone & Cheeks) -->
-            <div class="absolute top-18 w-10 h-10 rounded-full border border-white/60 flex items-center justify-center animate-pulse">
+            <div class="absolute top-14 w-9 h-9 rounded-full border border-white/60 flex items-center justify-center animate-pulse">
               <span class="w-2 h-2 rounded-full bg-[#E58C8A]"></span>
             </div>
-            <div class="absolute top-38 left-12 w-8 h-8 rounded-full border border-white/50 flex items-center justify-center">
+            <div class="absolute top-32 left-10 w-7 h-7 rounded-full border border-white/50 flex items-center justify-center">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
             </div>
-            <div class="absolute top-38 right-12 w-8 h-8 rounded-full border border-white/50 flex items-center justify-center">
+            <div class="absolute top-32 right-10 w-7 h-7 rounded-full border border-white/50 flex items-center justify-center">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
             </div>
 
             <!-- Match Status Badge -->
-            <div class="absolute bottom-6 px-3.5 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-white/20 text-[11px] font-semibold text-white flex items-center gap-1.5">
+            <div class="absolute bottom-5 px-3.5 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-white/20 text-[10px] font-semibold text-white flex items-center gap-1.5">
               <i data-lucide="scan" class="w-3.5 h-3.5 text-[#E58C8A]"></i>
               <span>Posisikan wajah di dalam oval</span>
             </div>
           </div>
         </div>
 
-        <!-- Bottom Shutter & Action Bar -->
-        <div class="relative z-30 px-6 pt-4 pb-8 bg-gradient-to-t from-black/90 via-black/65 to-transparent flex flex-col items-center gap-3">
-          <div class="flex items-center justify-around w-full max-w-xs">
+        <!-- Bottom Shutter & Action Bar - Perfectly Centered & Elevated -->
+        <div class="relative z-30 px-6 pt-3 pb-8 sm:pb-9 pb-safe bg-gradient-to-t from-black/95 via-black/80 to-transparent flex flex-col items-center gap-2">
+          <div class="flex items-center justify-between w-full max-w-[280px]">
             <!-- Upload Photo from Gallery -->
-            <label class="p-3.5 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 cursor-pointer active:scale-95 transition-all flex flex-col items-center" title="Unggah Foto Wajah">
+            <label class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 cursor-pointer active:scale-95 transition-all flex items-center justify-center shadow-md" title="Unggah Foto Wajah">
               <i data-lucide="image" class="w-5 h-5"></i>
               <input type="file" accept="image/*" class="hidden" onchange="app.handlePhotoUpload(event)">
             </label>
 
-            <!-- Big Circular Shutter Button -->
-            <button onclick="app.captureCameraPhoto()" class="w-20 h-20 rounded-full border-4 border-white p-1 flex items-center justify-center bg-white/20 shadow-2xl active:scale-90 transition-all">
+            <!-- Big Circular Shutter Button - Perfectly Centered -->
+            <button onclick="app.captureCameraPhoto()" class="w-[72px] h-[72px] rounded-full border-4 border-white p-1 flex items-center justify-center bg-white/25 shadow-2xl active:scale-90 transition-all focus:outline-none" title="Ambil Foto">
               <div class="w-full h-full rounded-full bg-gradient-to-tr from-[#D6727F] to-[#B35264] flex items-center justify-center shadow-lg">
-                <i data-lucide="camera" class="w-8 h-8 text-white"></i>
+                <i data-lucide="camera" class="w-7 h-7 text-white"></i>
               </div>
             </button>
 
             <!-- Manual Questionnaire Alternative -->
-            <button onclick="app.closeCameraScanner(); store.setView('quiz')" class="p-3.5 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 cursor-pointer active:scale-95 transition-all flex flex-col items-center" title="Pilih Manual">
+            <button onclick="app.closeCameraScanner(); store.setView('quiz')" class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 cursor-pointer active:scale-95 transition-all flex items-center justify-center shadow-md" title="Pilih Manual">
               <i data-lucide="sliders" class="w-5 h-5"></i>
             </button>
           </div>
 
-          <div class="flex items-center gap-4 text-[11px] text-white/70">
-            <span>Galeri</span>
-            <span class="font-bold text-white">Ambil Foto Wajah</span>
-            <span>Manual</span>
+          <div class="flex items-center justify-between w-full max-w-[280px] text-[10px] text-white/80 select-none">
+            <span class="w-12 text-center">Galeri</span>
+            <span class="flex-1 text-center font-bold text-white tracking-wide text-[11px]">Ambil Foto</span>
+            <span class="w-12 text-center">Manual</span>
           </div>
         </div>
       </div>
